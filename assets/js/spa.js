@@ -62,3 +62,23 @@ function actualizarCantidades() {
       console.error("Error al actualizar cantidades:", err);
     });
 }
+
+function cargarDirecto(ruta) {
+  fetch(ruta)
+    .then(res => {
+      if (!res.ok) throw new Error(`No se pudo cargar ${ruta}`);
+      return res.text();
+    })
+    .then(html => {
+      document.getElementById("contenido").innerHTML = html;
+    })
+    .catch(err => {
+      console.error("Error al cargar:", err);
+      document.getElementById("contenido").innerHTML = "<p>Error al cargar contenido.</p>";
+    });
+}
+
+
+function editarProducto(id) {
+  cargarDirecto(`Electrodomesticos/proveedor/editar_producto.php?id=${id}`);
+}
