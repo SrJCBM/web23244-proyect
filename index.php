@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION["id_usuario"])) {
-  header("Location: cliente/login.php");
+  header("Location: auth/login.php");
   exit();
 }
 ?>
@@ -41,7 +41,7 @@ if (!isset($_SESSION["id_usuario"])) {
     <a onclick="cargar('proforma')">Mi Proforma</a>
     <a onclick="cargar('historial_proformas')">Historial</a>
     <a onclick="cargar('perfil')">Perfil</a>
-    <a href="cliente/logout.php" style="float:right;">Salir</a>
+    <a href="auth/logout.php" style="float:right;">Salir</a>
   </nav>
 
   <div id="contenido">
