@@ -1,9 +1,9 @@
 <?php
-// session_start();
-// if (!isset($_SESSION["id_usuario"])) {
-//   header("Location: auth/login.php"); // Aqui cambiaras tufiño segun como vayas a crear tu carpeta de autenticación 
-//   exit();
-// }
+session_start();
+if (!isset($_SESSION["id_usuario"])) {
+  header("Location: cliente/login.php");
+  exit();
+}
 ?>
 
 <!DOCTYPE html>
