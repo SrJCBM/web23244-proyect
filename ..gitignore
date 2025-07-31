@@ -1,0 +1,39 @@
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos temporales o de caché
+*.log
+*.tmp
+*.swp
+*.bak
+
+# Archivos de entorno local
+.env
+.env.local
+
+# Bases de datos locales
+*.sqlite
+*.db
+*.sql
+
+# IDEs y editores
+.vscode/
+.idea/
+*.code-workspace
+
+# Node (por si usas npm para JS/CSS)
+node_modules/
+
+# Composer (si llegaran a usarlo)
+vendor/
+
+# Sistema operativo
+__MACOSX/
+
+# Archivos de depuración o subida temporal
+php_errors.log
+debug.log
+
+# Ignorar credenciales o configuración local
+includes/conexion.php
