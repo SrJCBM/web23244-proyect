@@ -1,14 +1,9 @@
 <?php
-session_start();
-
-if (!isset($_SESSION["id_usuario"]) || $_SESSION["rol"] !== "proveedor") {
-  echo "Acceso denegado.";
-  exit;
-}
+require_once("../../includes/verificar_rol.php");
+verificarRol([2]);
+$id_empresa = $_SESSION["id_empresa"];
 
 include '../../includes/conexion.php';
-
-$id_empresa = $_SESSION["id_empresa"];
 
 // Validar existencia del ID del producto
 if (!isset($_GET["id"])) {

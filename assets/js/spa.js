@@ -77,8 +77,3 @@ function cargarDirecto(ruta) {
       document.getElementById("contenido").innerHTML = "<p>Error al cargar contenido.</p>";
     });
 }
-
-
-function editarProducto(id) {
-  cargarDirecto(`Electrodomesticos/proveedor/editar_producto.php?id=${id}`);
-}

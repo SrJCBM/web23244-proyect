@@ -1,15 +1,11 @@
 <?php
 session_start();
 
-if (!isset($_SESSION["id_usuario"]) || $_SESSION["rol"] !== "proveedor") {
-  echo "Acceso denegado.";
-  exit;
-}
-
-include '../../includes/conexion.php';
-
+require_once("../../includes/verificar_rol.php");
+verificarRol([2]);
 $id_empresa = $_SESSION["id_empresa"];
 
+include '../../includes/conexion.php';
 // Consulta: solo productos activos de esta empresa
 $sql = "SELECT * FROM productos WHERE id_empresa = ? AND estado = 'activo' ORDER BY fecha_creacion DESC";
 $stmt = $conexion->prepare($sql);
@@ -42,7 +38,7 @@ $resultado = $stmt->get_result();
         <td><?= (int)$row['stock'] ?></td>
         <td><?= $row['fecha_creacion'] ?></td>
         <td>
-          <button onclick="editarProducto(<?= $row['id_producto'] ?>)">✏️</button>
+          <button onclick="cargar('Electrodomesticos/proveedor/editar_producto?id=<?= $row['id_producto'] ?>')">✏️</button>
           <button onclick="eliminarProducto(<?= $row['id_producto'] ?>)">🗑️</button>
         </td>
       </tr>

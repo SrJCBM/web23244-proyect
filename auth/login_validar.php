@@ -19,6 +19,7 @@ $stmt->bind_param("ss", $usuario, $usuario);
 $stmt->execute();
 $result = $stmt->get_result();
 
+
 // Verificar si encontró usuario
 if ($result->num_rows === 1) {
     $row = $result->fetch_assoc();
@@ -28,7 +29,7 @@ if ($result->num_rows === 1) {
     if (password_verify($password, $row["contraseña"])) {
         $_SESSION["id_usuario"] = $row["id_usuario"];
         $_SESSION["nombre"] = $row["nombre_completo"];
-        $_SESSION["rol"] = $row["id_rol"];
+        $_SESSION["id_rol"] = $row["id_rol"];
         header("Location: ../index.php");
         exit();
     } else {

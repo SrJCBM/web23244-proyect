@@ -3,23 +3,11 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-session_start();
-
-// Simulación de sesión
-if (!isset($_SESSION["id_usuario"])) {
-  $_SESSION["id_usuario"] = 1;
-  $_SESSION["rol"] = "proveedor";
-  $_SESSION["id_empresa"] = 1;
-}
-
-if ($_SESSION["rol"] !== "proveedor") {
-  echo "Acceso no autorizado.";
-  exit;
-}
+require_once("../../includes/verificar_rol.php");
+verificarRol([2]); 
+$id_empresa = $_SESSION["id_empresa"];
 
 include '../../includes/conexion.php';
-
-$id_empresa = $_SESSION["id_empresa"];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $nombre = $_POST["nombre"];
