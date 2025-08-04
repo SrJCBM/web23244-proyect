@@ -22,8 +22,8 @@ SET time_zone = "+00:00";
 -- Base de datos: `sistema_cotizaciones`
 --
 
--- --------------------------------------------------------
-
+CREATE DATABASE IF NOT EXISTS sistema_cotizaciones;
+USE sistema_cotizaciones;
 --
 -- Estructura de tabla para la tabla `clientes`
 --
