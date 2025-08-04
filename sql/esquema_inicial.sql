@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 04-08-2025 a las 12:38:59
+-- Tiempo de generación: 04-08-2025 a las 12:56:35
 -- Versión del servidor: 8.0.17
 -- Versión de PHP: 7.3.10
 
@@ -252,10 +252,10 @@ CREATE TABLE `usuarios` (
 
 INSERT INTO `usuarios` (`id_usuario`, `nombre_completo`, `correo`, `contraseña`, `nickname`, `fecha_nacimiento`, `id_rol`, `estado`, `created_at`) VALUES
 (1, 'Administrador General', 'admin@sistema.com', '$2y$10$RDUqPX.onV.oMNnbUkztDudGCjzcNCoktvL60OsetTsWwOY9eZSS6', 'admin', '1990-01-01', 1, 'activo', '2025-08-01 02:45:35'),
-(2, 'Proveedor ElectroQuito', 'ventas@electroquito.ec', '$2y$10$k6zW5Bd2ChI1r77VMEoCIuKppxeEq0v0O08nHv7CT/J9v0Y7smgSO', 'electro', '1985-05-10', 2, 'activo', '2025-08-04 17:32:14'),
-(3, 'Proveedor HogarTech', 'info@hogartech.com', '$2y$10$k6zW5Bd2ChI1r77VMEoCIuKppxeEq0v0O08nHv7CT/J9v0Y7smgSO', 'hogar', '1982-03-08', 2, 'activo', '2025-08-04 17:32:14'),
-(4, 'Cliente Uno', 'cliente1@gmail.com', '$2y$10$NWz4AcqTjYUwCjK9T9rGZOMXMZ2zOvMLYLSzZemD6.2XPUUR1pqD6', 'cliente1', '2000-07-01', 3, 'activo', '2025-08-04 17:32:14'),
-(5, 'Cliente Dos', 'cliente2@gmail.com', '$2y$10$NWz4AcqTjYUwCjK9T9rGZOMXMZ2zOvMLYLSzZemD6.2XPUUR1pqD6', 'cliente2', '1998-10-15', 3, 'activo', '2025-08-04 17:32:14');
+(2, 'Proveedor ElectroQuito', 'ventas@electroquito.ec', '$2y$10$tlribCGXCamL.JLLEt18kO/D/cTEki8FWcMf26ZI0zz4ngMECcDy2', 'electro', '1985-05-10', 2, 'activo', '2025-08-04 17:32:14'),
+(3, 'Proveedor HogarTech', 'info@hogartech.com', '$2y$10$tlribCGXCamL.JLLEt18kO/D/cTEki8FWcMf26ZI0zz4ngMECcDy2', 'hogar', '1982-03-08', 2, 'activo', '2025-08-04 17:32:14'),
+(4, 'Cliente Uno', 'cliente1@gmail.com', '$2y$10$RbhJoeFsRgvsRCFj7zVDm.oQqZrRGkS42amlMjzpeir3Ua9g.tPs.', 'cliente1', '2000-07-01', 3, 'activo', '2025-08-04 17:32:14'),
+(5, 'Cliente Dos', 'cliente2@gmail.com', '$2y$10$RbhJoeFsRgvsRCFj7zVDm.oQqZrRGkS42amlMjzpeir3Ua9g.tPs.', 'cliente2', '1998-10-15', 3, 'activo', '2025-08-04 17:32:14');
 
 --
 -- Índices para tablas volcadas
