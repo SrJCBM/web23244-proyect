@@ -15,7 +15,9 @@ $nombre = $_SESSION["nombre"];
   <meta charset="UTF-8">
   <title>Sistema de Cotizaciones</title>
   <link rel="stylesheet" href="assets/css/estilos.css">
+  <link rel="stylesheet" href="assets/css/sidebar.css">
   <script src="assets/js/spa.js" defer></script>
+  <script src="assets/js/sidebar.js" defer></script>
   <style>
     body { font-family: Arial, sans-serif; margin: 0; }
     nav {
@@ -39,6 +41,18 @@ $nombre = $_SESSION["nombre"];
 </head>
 <body>
 
+<?php
+if ($rol == 1) {
+  include 'includes/sidebar_admin.php';
+} elseif ($rol == 2) {
+  include 'includes/sidebar_proveedor.php';
+} elseif ($rol == 3) {
+  include 'includes/sidebar_cliente.php';
+}
+?>
+
+<button id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+<div id="contenido-wrapper">
   <nav>
     <?php if ($rol == 1): // ADMINISTRADOR ?>
       <a onclick="cargarDirecto('administrador/lista_empresas.php')">Empresas</a>
@@ -61,6 +75,7 @@ $nombre = $_SESSION["nombre"];
     <a href="auth/logout.php" style="float:right;">Salir</a>
   </nav>
 
+
 <div id="contenido">
   <h2>Bienvenido, <?= htmlspecialchars($nombre) ?> 👋</h2>
   <?php if ($rol == 1): ?>
@@ -70,8 +85,9 @@ $nombre = $_SESSION["nombre"];
   <?php elseif ($rol == 3): ?>
     <p>Como cliente, puedes explorar el catálogo, generar proformas y revisar tu historial.</p>
   <?php endif; ?>
-</div>
+</div></div>
 
 
 </body>
+
 </html>
