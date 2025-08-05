@@ -1,21 +1,28 @@
 <?php include("../includes/header.php"); ?>
-<h2>Registro de Usuario</h2>
-<form action="registro_guardar.php" method="POST">
-  <label>Nombre completo:</label><br>
-  <input type="text" name="nombre_completo" required><br>
+<link rel="stylesheet" href="../assets/css/registro.css">
 
-  <label>Correo:</label><br>
-  <input type="email" name="correo" required><br>
+<div class="form-wrapper">
+  <form action="registro_guardar.php" method="POST">
+    <h2>Registro de Usuario</h2>
 
-  <label>Nickname:</label><br>
-  <input type="text" name="nickname" required><br>
+    <label>Nombre completo:</label>
+    <input type="text" name="nombre_completo" required>
 
-  <label>Contraseña:</label><br>
-  <input type="password" name="password" required><br>
+    <label>Correo:</label>
+    <input type="email" name="correo" required>
 
-  <label>Fecha de nacimiento:</label><br>
-  <input type="date" name="fecha_nacimiento"><br><br>
+    <label>Nickname:</label>
+    <input type="text" name="nickname" required>
 
-  <button type="submit">Registrarse</button>
-</form>
+    <label>Contraseña:</label>
+    <input type="password" name="password" required>
+
+    <label>Fecha de nacimiento:</label>
+    <input type="date" name="fecha_nacimiento">
+
+    <button type="submit">Registrarse</button>
+    <a class="back-button" href="../index.php">← Volver al inicio</a>
+  </form>
+</div>
+
 <?php include("../includes/footer.php"); ?>

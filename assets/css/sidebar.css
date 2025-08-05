@@ -2,8 +2,8 @@
 /* CSS Document */
 
 :root {
-  --azul-oscuro: #003366;
-  --azul-claro: #336699;
+  --azul-oscuro: #4482C0;
+  --azul-claro: #003366;
   --gris: #211B1D;
 }
 
@@ -56,7 +56,7 @@ body {
   display: flex;
   align-items: center;
   padding: 20px;
-  background: linear-gradient(to top, #0066eb 0%, #656474 68%);
+  background: linear-gradient(to top, #4482C0 0%, #003366 68%);
 }
 
 .vertical-nav .media img {

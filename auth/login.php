@@ -6,30 +6,26 @@ if (isset($_SESSION["id_usuario"])) {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Iniciar Sesión</title>
-  <link rel="stylesheet" href="../assets/css/estilos.css">
-</head>
-<body>
-  <div class="container">
+<?php include("../includes/header.php"); ?>
+<link rel="stylesheet" href="../assets/css/login.css">
+
+<div class="form-wrapper">
+  <form action="login_validar.php" method="POST">
     <h2>Iniciar Sesión</h2>
 
     <?php if (isset($_GET["error"])): ?>
       <p style="color:red;"><?php echo htmlspecialchars($_GET["error"]); ?></p>
     <?php endif; ?>
 
-    <form action="login_validar.php" method="POST">
-      <label for="usuario">Correo:</label><br>
-      <input type="text" name="usuario" required><br><br>
+    <label for="usuario">Correo:</label>
+    <input type="text" name="usuario" required>
 
-      <label for="password">Contraseña:</label><br>
-      <input type="password" name="password" required><br><br>
+    <label for="password">Contraseña:</label>
+    <input type="password" name="password" required>
 
-      <button type="submit">Ingresar</button>
-    </form>
-  </div>
-</body>
-</html>
+    <button type="submit">Ingresar</button>
+    <a class="back-button" href="../index.php">← Volver al inicio</a>
+  </form>
+</div>
+
+<?php include("../includes/footer.php"); ?>
