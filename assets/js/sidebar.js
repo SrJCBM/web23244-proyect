@@ -1,8 +1,11 @@
 function toggleSidebar() {
   const sidebar = document.getElementById("sidebar");
   const wrapper = document.getElementById("contenido-wrapper");
+  const toggleBtn = document.getElementById("sidebarToggle");
+
   sidebar.classList.toggle("active");
   wrapper.classList.toggle("sidebar-open");
+  toggleBtn.classList.toggle("sidebar-open"); 
 }
 
 function cargarDirecto(url) {

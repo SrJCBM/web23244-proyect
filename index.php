@@ -53,29 +53,6 @@ if ($rol == 1) {
 
 <button id="sidebarToggle" onclick="toggleSidebar()">☰</button>
 <div id="contenido-wrapper">
-  <nav>
-    <?php if ($rol == 1): // ADMINISTRADOR ?>
-      <a onclick="cargarDirecto('administrador/lista_empresas.php')">Empresas</a>
-      <a onclick="cargarDirecto('administrador/lista_usuarios.php')">Usuarios</a>
-      <a onclick="cargarDirecto('administrador/todas_cotizaciones.php')">Cotizaciones</a>
-
-    <?php elseif ($rol == 2): // PROVEEDOR ?>
-      <a onclick="cargarDirecto('Electrodomesticos/proveedor/lista_productos.php')">Mis Productos</a>
-      <a onclick="cargarDirecto('Electrodomesticos/proveedor/cotizaciones_recibidas.php')">Cotizaciones</a>
-      <a onclick="cargarDirecto('Electrodomesticos/proveedor/perfil_empresa.php')">Perfil Empresa</a>
-
-    <?php elseif ($rol == 3): // CLIENTE ?>
-      <a onclick="cargar('catalogo')">Catálogo</a>
-      <a onclick="cargar('proforma')">Mi Proforma</a>
-      <a onclick="cargar('historial_proformas')">Historial</a>
-      <a onclick="cargar('perfil')">Perfil</a>
-
-    <?php endif; ?>
-
-    <a href="auth/logout.php" style="float:right;">Salir</a>
-  </nav>
-
-
 <div id="contenido">
   <h2>Bienvenido, <?= htmlspecialchars($nombre) ?> 👋</h2>
   <?php if ($rol == 1): ?>

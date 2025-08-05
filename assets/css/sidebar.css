@@ -31,7 +31,7 @@ body {
 
 #sidebarToggle {
   position: fixed;
-  top: 85px;
+  top: 20px;
   left: 10px;
   background: var(--azul-claro);
   color: white;
@@ -40,6 +40,11 @@ body {
   cursor: pointer;
   z-index: 1100;
   border-radius: 6px;
+  transition: left 0.3s ease;
+}
+
+#sidebarToggle.sidebar-open {
+  left: 180px; 
 }
 
 #contenido-wrapper {
@@ -105,5 +110,26 @@ body {
   margin: 10px auto;
   display: block;
   padding: 8px 20px;
+}
+
+.btn-cerrar-sesion {
+  display: block;
+  width: 90%;
+  padding: 10px 0;
+  margin: 10px auto;
+  text-align: center;
+  background-color: #dc3545;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.btn-cerrar-sesion:hover {
+  background-color: #c82333;
+  color: white;
+  text-decoration: none;
 }
 
