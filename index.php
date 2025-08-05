@@ -41,9 +41,9 @@ $nombre = $_SESSION["nombre"];
 
   <nav>
     <?php if ($rol == 1): // ADMINISTRADOR ?>
-      <a onclick="cargarDirecto('admin/lista_empresas.php')">Empresas</a>
-      <a onclick="cargarDirecto('admin/lista_usuarios.php')">Usuarios</a>
-      <a onclick="cargarDirecto('admin/todas_cotizaciones.php')">Cotizaciones</a>
+      <a onclick="cargarDirecto('administrador/lista_empresas.php')">Empresas</a>
+      <a onclick="cargarDirecto('administrador/lista_usuarios.php')">Usuarios</a>
+      <a onclick="cargarDirecto('administrador/todas_cotizaciones.php')">Cotizaciones</a>
 
     <?php elseif ($rol == 2): // PROVEEDOR ?>
       <a onclick="cargarDirecto('Electrodomesticos/proveedor/lista_productos.php')">Mis Productos</a>
