@@ -14,7 +14,9 @@
   <ul class="nav flex-column bg-white mb-0">
     <li class="nav-item"><a class="nav-link">Insertar texto de opción</a></li> 
 	   
-	  //Para añadir la redireccion a las opciones añadir un onCLick, algo de este estilo onclick="cargarDirecto('administrador/lista_empresas.php'"), al aldo derecho del class="nav-link"
+	  <!-- Para añadir la redirección a las opciones, añadir un onclick, algo de este estilo:
+     onclick="cargarDirecto('administrador/lista_empresas.php')" al lado derecho de class="nav-link" -->
+
 	  
 	  
     <li class="nav-item"><a class="nav-link">Insertar texto de opción</a></li>
