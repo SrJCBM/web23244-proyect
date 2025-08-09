@@ -16,6 +16,7 @@ $nombre = $_SESSION["nombre"];
   <title>Sistema de Cotizaciones</title>
   <link rel="stylesheet" href="assets/css/estilos.css">
   <link rel="stylesheet" href="assets/css/sidebar.css">
+  <link rel="stylesheet" href="assets/css/admin-crud.css">
   <script src="assets/js/spa.js" defer></script>
   <script src="assets/js/sidebar.js" defer></script>
   <style>
