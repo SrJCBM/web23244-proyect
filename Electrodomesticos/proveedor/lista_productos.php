@@ -56,7 +56,19 @@ $mostrarCrear = true; // cambia a false si NO quieres que aparezca
         <td>
           <!-- Usa cargarDirecto y .php para evitar prefijos "cliente/" -->
           <button onclick="cargarDirecto('Electrodomesticos/proveedor/editar_producto.php?id=<?= (int)$row['id_producto'] ?>')">✏️</button>
-          <button onclick="eliminarProducto(<?= (int)$row['id_producto'] ?>)">🗑️</button>
+          <a href="#"
+   title="Eliminar"
+   onclick="
+     if (!confirm('¿Eliminar este producto? Esta acción no se puede deshacer.')) return false;
+     cargarDirecto('Electrodomesticos/proveedor/eliminar_producto.php?id=<?= (int)$row['id_producto'] ?>');
+     return false;
+   ">
+  🗑️
+</a>
+
+
+
+
         </td>
       </tr>
     <?php endwhile; ?>
