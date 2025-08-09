@@ -23,11 +23,20 @@
     <li class="nav-item"><a class="nav-link" onclick="cargarDirecto('administrador/todas_cotizaciones.php')">Cotizaciones</a></li>
   </ul>
 
-  <h5 class="ui horizontal divider header text-primary">Insertar texto de sección</h5>
-  <ul class="nav flex-column bg-white mb-0">
-    <li class="nav-item"><a class="nav-link">Insertar texto de opción</a></li>
-    <li class="nav-item"><a class="nav-link">Insertar texto de opción</a></li>
-  </ul>
+  <h5 class="ui horizontal divider header text-primary">Productos proveedor</h5>
+<ul class="nav flex-column bg-white mb-0">
+  <li class="nav-item">
+    <a class="nav-link" onclick="cargarDirecto('administrador/productos/crear_producto.php')">
+      Crear producto
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" onclick="cargarDirecto('administrador/productos/lista_productos.php')">
+      Listar productos
+    </a>
+  </li>
+</ul>
+
 
   <h5 class="ui horizontal divider header text-primary">Insertar texto de sección</h5>
   <ul class="nav flex-column bg-white mb-0">
