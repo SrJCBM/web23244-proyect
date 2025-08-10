@@ -4,8 +4,7 @@
 <main>
   <div>
     <h1>Bienvenido al Sistema de Cotizaciones</h1>
-    <p>Regístrate o inicia sesión para comenzar a generar proformas.</p>
-    <a href="../auth/registro.php">Registrarse</a>
+    <p>Inicia sesión para comenzar a generar proformas.</p>
     <a href="../auth/login.php">Iniciar Sesión</a>
   </div>
 </main>
