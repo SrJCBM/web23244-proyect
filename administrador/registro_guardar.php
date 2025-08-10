@@ -6,12 +6,13 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 1) {
 }
 
 require_once("../includes/conexion.php");
+$conexion->set_charset('utf8mb4');  
 
 $nombre = $_POST["nombre_completo"];
 $correo = $_POST["correo"];
 $nickname = $_POST["nickname"];
 $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
-$fecha = $_POST["fecha_nacimiento"];
+$fecha = trim($_POST["fecha_nacimiento"] ?? '');  
 $rol = $_POST["id_rol"];
 $estado = "activo";
 
@@ -27,13 +28,16 @@ if ($resultado->num_rows > 0) {
 }
 
 // Insertar usuario
-$stmt = $conexion->prepare("INSERT INTO usuarios (nombre_completo, correo, contraseña, nickname, fecha_nacimiento, id_rol, estado) VALUES (?, ?, ?, ?, ?, ?, ?)");
+$stmt = $conexion->prepare(
+  "INSERT INTO usuarios (nombre_completo, correo, `contraseña`, nickname, fecha_nacimiento, id_rol, estado)
+   VALUES (?, ?, ?, ?, NULLIF(?, ''), ?, ?)"
+);
 $stmt->bind_param("sssssis", $nombre, $correo, $password, $nickname, $fecha, $rol, $estado);
 
 if ($stmt->execute()) {
     header("Location: lista_usuarios.php?registro=ok");
     exit;
 } else {
-    echo "Error al registrar usuario.";
+    die("Error al registrar usuario: " . $stmt->error); 
 }
 ?>

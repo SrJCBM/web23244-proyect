@@ -22,7 +22,8 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 1) {
 </style>
 
 <div class="form-wrapper">
-  <form action="registro_guardar.php" method="POST">
+  <div id="msg" style="margin-bottom:10px;"></div>
+  <form id="frmRegistro" action="administrador/registro_guardar.php" method="POST">
     <h2>Registrar nuevo usuario</h2>
 
     <label>Nombre completo:</label>
@@ -49,6 +50,8 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 1) {
         <option value="6">Analista</option>
     </select>
 
-    <button type="submit">Registrar usuario</button>
+    <button type="submit" id="btnSubmit">Registrar usuario</button>
   </form>
 </div>
+
+
