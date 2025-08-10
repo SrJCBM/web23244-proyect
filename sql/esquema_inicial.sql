@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 09-08-2025 a las 17:53:31
+-- Tiempo de generación: 10-08-2025 a las 22:03:10
 -- Versión del servidor: 8.0.17
 -- Versión de PHP: 7.3.10
 
@@ -23,6 +23,22 @@ SET time_zone = "+00:00";
 --
 CREATE DATABASE IF NOT EXISTS `sistema_cotizaciones` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE `sistema_cotizaciones`;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `auditoria`
+--
+
+CREATE TABLE `auditoria` (
+  `id_audit` bigint(20) UNSIGNED NOT NULL,
+  `fecha` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `actor_id` int(11) DEFAULT NULL,
+  `accion` varchar(32) NOT NULL,
+  `entidad` varchar(32) NOT NULL,
+  `entidad_id` bigint(20) DEFAULT NULL,
+  `detalle` json DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -174,9 +190,12 @@ CREATE TABLE `roles` (
 --
 
 INSERT INTO `roles` (`id_rol`, `nombre_rol`, `descripcion`) VALUES
-(1, 'administrador', 'Acceso completo'),
-(2, 'proveedor', 'Gestiona productos'),
-(3, 'cliente', 'Cliente registrado');
+(1, 'Administrador General', 'Acceso completo'),
+(2, 'Vendedor / Cotizador', 'Genera y gestiona proformas'),
+(3, 'Cliente', 'Cliente registrado'),
+(4, 'Auditor', 'Visualiza historial y logs'),
+(5, 'Supervisor de Productos y Proveedores', 'Gestiona catálogo y proveedores'),
+(6, 'Analista Comercial', 'Consulta reportes y estadísticas');
 
 -- --------------------------------------------------------
 
@@ -206,11 +225,22 @@ INSERT INTO `usuarios` (`id_usuario`, `nombre_completo`, `correo`, `contraseña`
 (2, 'Proveedor ElectroQuito', 'ventas@electroquito.ec', '$2y$10$tlribCGXCamL.JLLEt18kO/D/cTEki8FWcMf26ZI0zz4ngMECcDy2', 'electro', '1985-05-10', 2, 'activo', '2025-08-04 17:32:14'),
 (3, 'Proveedor HogarTech', 'info@hogartech.com', '$2y$10$tlribCGXCamL.JLLEt18kO/D/cTEki8FWcMf26ZI0zz4ngMECcDy2', 'hogar', '1982-03-08', 2, 'activo', '2025-08-04 17:32:14'),
 (4, 'Cliente Uno', 'cliente1@gmail.com', '$2y$10$RbhJoeFsRgvsRCFj7zVDm.oQqZrRGkS42amlMjzpeir3Ua9g.tPs.', 'cliente1', '2000-07-01', 3, 'activo', '2025-08-04 17:32:14'),
-(5, 'Cliente Dos', 'cliente2@gmail.com', '$2y$10$RbhJoeFsRgvsRCFj7zVDm.oQqZrRGkS42amlMjzpeir3Ua9g.tPs.', 'cliente2', '1998-10-15', 3, 'activo', '2025-08-04 17:32:14');
+(5, 'Cliente Dos', 'cliente2@gmail.com', '$2y$10$RbhJoeFsRgvsRCFj7zVDm.oQqZrRGkS42amlMjzpeir3Ua9g.tPs.', 'cliente2', '1998-10-15', 3, 'activo', '2025-08-04 17:32:14'),
+(6, ' Auditor Interno', 'auditor@sistema.com', '$2y$10$vFz3INcLEJbtwb7xo6ZMQe3JMFqgMV/igdBGsn.YBEOVr38bnXHV.', 'auditor', '1980-06-10', 4, 'activo', '2025-08-10 20:43:11'),
+(7, 'Supervisor Productos', 'supervisor@sistema.com', '$2y$10$QDBSl/uEO/AiH23Dtgq5SuIUxZCHmHQmYQaInd14QBNe6tk1xuhI2', 'supervisor', '1988-07-10', 5, 'activo', '2025-08-10 20:45:25'),
+(8, 'Analista Comercial', 'analista@sistema.com', '$2y$10$rtFdK0..gZ2PEKPCjdliO.qmVfx5xpRxu1lLbxR7qbR3pr4xbKXPS', 'analista', '1995-12-05', 6, 'activo', '2025-08-10 20:47:01');
 
 --
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `auditoria`
+--
+ALTER TABLE `auditoria`
+  ADD PRIMARY KEY (`id_audit`),
+  ADD KEY `idx_entidad` (`entidad`,`entidad_id`),
+  ADD KEY `idx_actor` (`actor_id`,`fecha`);
 
 --
 -- Indices de la tabla `clientes`
@@ -270,6 +300,12 @@ ALTER TABLE `usuarios`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `auditoria`
+--
+ALTER TABLE `auditoria`
+  MODIFY `id_audit` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `clientes`
 --
 ALTER TABLE `clientes`
@@ -303,13 +339,13 @@ ALTER TABLE `productos`
 -- AUTO_INCREMENT de la tabla `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Restricciones para tablas volcadas
