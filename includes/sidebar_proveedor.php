@@ -14,13 +14,6 @@
 
 <h5 class="ui horizontal divider header text-primary">Productos</h5>
 <ul class="nav flex-column bg-white mb-0">
-  <!-- Crear producto (form del proveedor) -->
-  <li class="nav-item">
-    <a class="nav-link" onclick="cargarDirecto('Electrodomesticos/proveedor/crear_producto.php')">
-       Crear producto
-    </a>
-  </li>
-
   	  
 	  <!-- Para añadir la redirección a las opciones, añadir un onclick, algo de este estilo:
      onclick="cargarDirecto('administrador/lista_empresas.php')" al lado derecho de class="nav-link" -->
@@ -29,7 +22,7 @@
   <!-- Listar productos (global temporal) -->
   <li class="nav-item">
     <a class="nav-link" onclick="cargarDirecto('Electrodomesticos/proveedor/lista_productos.php')">
-      📦 Listar productos (global)
+      📦 Listar productos
     </a>
     <!-- TODO: cuando migren a Administrador, cambiar a:
          onclick="cargarDirecto('administrador/lista_productos_global.php')" 
