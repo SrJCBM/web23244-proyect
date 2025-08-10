@@ -5,7 +5,6 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 1) {
     exit;
 }
 ?>
-
 <style>
 .form-wrapper{max-width:720px;margin:24px auto;padding:20px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.06);color:#0f172a}
 .form-wrapper h2{margin:0 0 12px 0;font-size:22px}
@@ -20,27 +19,20 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 1) {
 .form-wrapper button[type="submit"]{width:100%;margin-top:16px;height:46px;border:0;border-radius:10px;background:linear-gradient(180deg,#003366,#4482C0);color:#fff;font-weight:700;cursor:pointer}
 .form-wrapper button[type="submit"]:hover{filter:brightness(1.05)}
 </style>
-
 <div class="form-wrapper">
   <div id="msg" style="margin-bottom:10px;"></div>
   <form id="frmRegistro" action="administrador/registro_guardar.php" method="POST">
     <h2>Registrar nuevo usuario</h2>
-
     <label>Nombre completo:</label>
     <input type="text" name="nombre_completo" required>
-
     <label>Correo:</label>
     <input type="email" name="correo" required>
-
     <label>Nickname:</label>
     <input type="text" name="nickname" required>
-
     <label>Contraseña:</label>
     <input type="password" name="password" required>
-
     <label>Fecha de nacimiento:</label>
     <input type="date" name="fecha_nacimiento">
-
     <label>Rol:</label>
     <select name="id_rol" required>
         <option value="">Seleccionar rol...</option>
@@ -49,9 +41,6 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 1) {
         <option value="5">Supervisor</option>
         <option value="6">Analista</option>
     </select>
-
     <button type="submit" id="btnSubmit">Registrar usuario</button>
   </form>
 </div>
-
-

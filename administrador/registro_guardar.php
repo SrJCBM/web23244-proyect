@@ -35,7 +35,7 @@ $stmt = $conexion->prepare(
 $stmt->bind_param("sssssis", $nombre, $correo, $password, $nickname, $fecha, $rol, $estado);
 
 if ($stmt->execute()) {
-    header("Location: lista_usuarios.php?registro=ok");
+    header("Location: ../index.php?registro=ok");
     exit;
 } else {
     die("Error al registrar usuario: " . $stmt->error); 
