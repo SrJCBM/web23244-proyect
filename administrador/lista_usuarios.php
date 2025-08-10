@@ -2,38 +2,86 @@
 require_once("../includes/verificar_rol.php");
 verificarRol([1]);
 
-include("../includes/conexion.php");
+require_once("../includes/conexion.php");
 
-if (isset($_GET["toggle_estado"])) {
-  $id = intval($_GET["toggle_estado"]);
-  $sql = "UPDATE usuarios SET estado = IF(estado = 'activo', 'inactivo', 'activo') WHERE id_usuario = ?";
-  $stmt = $conexion->prepare($sql);
+// OPCIONAL: mostrar errores en desarrollo
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+function go($msg = '') {
+  $url = "../index.php"; // Ruta al index
+  if ($msg !== '') $url .= '?msg=' . urlencode($msg);
+  header("Location: $url");
+  exit;
+}
+
+
+if (isset($_GET['toggle_estado'])) {
+  $id = (int) $_GET['toggle_estado'];
+
+  if ($id === (int)$_SESSION['id_usuario']) {
+    go('yo_mismo');
+  }
+
+  $u = $conexion->prepare("SELECT id_rol, estado FROM usuarios WHERE id_usuario=? LIMIT 1");
+  if (!$u) { error_log('prepare u: '.$conexion->error); go('err'); }
+  $u->bind_param("i", $id);
+  if (!$u->execute()) { error_log('exec u: '.$u->error); go('err'); }
+  $u->bind_result($u_rol, $u_estado);
+  $ok = $u->fetch();
+  $u->close();
+
+  if (!$ok) {
+    go('notfound');
+  }
+
+  if ((int)$u_rol === 1 && $u_estado === 'activo') {
+    $c = $conexion->query("SELECT COUNT(*) AS n FROM usuarios WHERE id_rol=1 AND estado='activo'");
+    if (!$c) { error_log('count admins: '.$conexion->error); go('err'); }
+    $row = $c->fetch_assoc();
+    $admins_activos = (int)($row['n'] ?? 0);
+    if ($admins_activos <= 1) {
+      go('ultimo_admin');
+    }
+  }
+
+  $stmt = $conexion->prepare("
+    UPDATE usuarios
+       SET estado = IF(estado='activo','inactivo','activo')
+     WHERE id_usuario = ?
+     LIMIT 1
+  ");
+  if (!$stmt) { error_log('prepare upd: '.$conexion->error); go('err'); }
   $stmt->bind_param("i", $id);
-  $stmt->execute();
-  header("Location: admin/lista_usuarios.php");
-  exit;
+  if (!$stmt->execute()) { error_log('exec upd: '.$stmt->error); go('err'); }
+  $stmt->close();
+
+  go('ok');
 }
 
-// Procesar cambio de rol
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["cambiar_rol"])) {
-  $id = intval($_POST["id_usuario"]);
-  $nuevo_rol = intval($_POST["nuevo_rol"]);
-  $sql = "UPDATE usuarios SET id_rol = ? WHERE id_usuario = ?";
-  $stmt = $conexion->prepare($sql);
-  $stmt->bind_param("ii", $nuevo_rol, $id);
-  $stmt->execute();
-  header("Location: admin/lista_usuarios.php");
-  exit;
-}
-
-// Obtener usuarios
 $sql = "
 SELECT u.id_usuario, u.nombre_completo, u.correo, u.nickname, u.estado, u.id_rol, r.nombre_rol
 FROM usuarios u
 LEFT JOIN roles r ON u.id_rol = r.id_rol
-ORDER BY u.nombre_completo
-";
+ORDER BY u.nombre_completo";
 $resultado = $conexion->query($sql);
+if (!$resultado) { echo "<p>Error al listar: ".htmlspecialchars($conexion->error)."</p>"; }
+?>
+
+<?php
+if (!empty($_GET['msg'])) {
+  $msgs = [
+    'ok'           => 'Estado actualizado.',
+    'yo_mismo'     => 'No puedes cambiar tu propio estado.',
+    'notfound'     => 'Usuario no encontrado.',
+    'ultimo_admin' => 'No puedes desactivar al último administrador activo.',
+    'err'          => 'Ocurrió un error. Revisa el log del servidor.',
+  ];
+  if (isset($msgs[$_GET['msg']])) {
+    echo '<p style="color:#0f766e;margin:8px 0;">'.htmlspecialchars($msgs[$_GET['msg']]).'</p>';
+  }
+}
 ?>
 
 <h2>👥 Lista de Usuarios</h2>
@@ -44,36 +92,20 @@ $resultado = $conexion->query($sql);
     <th>Correo</th>
     <th>Rol</th>
     <th>Estado</th>
-    <th>Cambiar Rol</th>
     <th>Activar/Inactivar</th>
   </tr>
-
-  <?php while ($row = $resultado->fetch_assoc()): ?>
+  <?php if ($resultado) while ($row = $resultado->fetch_assoc()): ?>
     <tr>
-      <td><?= htmlspecialchars($row["nombre_completo"]) ?></td>
-      <td><?= htmlspecialchars($row["correo"]) ?></td>
-      <td><?= htmlspecialchars($row["nombre_rol"]) ?></td>
-      <td><?= $row["estado"] === "activo" ? "✅ Activo" : "⛔ Inactivo" ?></td>
+      <td><?= htmlspecialchars($row['nombre_completo']) ?></td>
+      <td><?= htmlspecialchars($row['correo']) ?></td>
+      <td><?= htmlspecialchars($row['nombre_rol'] ?: '—') ?></td>
+      <td><?= $row['estado'] === 'activo' ? '✅ Activo' : '⛔ Inactivo' ?></td>
       <td>
-        <?php if ($_SESSION["id_usuario"] != $row["id_usuario"]): ?>
-          <form method="POST" style="display:inline;">
-            <input type="hidden" name="id_usuario" value="<?= $row["id_usuario"] ?>">
-            <select name="nuevo_rol">
-              <option value="1" <?= $row["id_rol"] == 1 ? "selected" : "" ?>>Administrador</option>
-              <option value="2" <?= $row["id_rol"] == 2 ? "selected" : "" ?>>Proveedor</option>
-              <option value="3" <?= $row["id_rol"] == 3 ? "selected" : "" ?>>Cliente</option>
-            </select>
-            <button type="submit" name="cambiar_rol">Cambiar</button>
-          </form>
-        <?php else: ?>
-          <em>(Tú)</em>
-        <?php endif; ?>
-      </td>
-      <td>
-        <?php if ($_SESSION["id_usuario"] != $row["id_usuario"]): ?>
-          <a href="?toggle_estado=<?= $row["id_usuario"] ?>" onclick="return confirm('¿Seguro?')">
-            <?= $row["estado"] === "activo" ? "❌ Desactivar" : "✅ Activar" ?>
-          </a>
+        <?php if ((int)$_SESSION['id_usuario'] !== (int)$row['id_usuario']): ?>
+      <a href="administrador/lista_usuarios.php?toggle_estado=<?= (int)$row['id_usuario'] ?>&t=<?= time() ?>"
+        onclick="return confirm('¿Confirmas el cambio de estado?')">
+        <?= $row['estado'] === 'activo' ? '❌ Desactivar' : '✅ Activar' ?>
+      </a>
         <?php else: ?>
           —
         <?php endif; ?>
