@@ -46,10 +46,14 @@ $nombre = $_SESSION["nombre"];
 if ($rol == 1) {
   include 'includes/sidebar_admin.php';
 } elseif ($rol == 2) {
-  include 'includes/sidebar_proveedor.php';
-} elseif ($rol == 3) {
-  include 'includes/sidebar_cliente.php';
-}
+  include 'includes/sidebar_vendedor.php';     
+} elseif ($rol == 4) {
+  include 'includes/sidebar_auditor.php';      
+} elseif ($rol == 5) {
+  include 'includes/sidebar_supervisor.php';   
+} elseif ($rol == 6) {
+  include 'includes/sidebar_analista.php';     
+} 
 ?>
 
 <button id="sidebarToggle" onclick="toggleSidebar()">☰</button>
@@ -57,12 +61,16 @@ if ($rol == 1) {
 <div id="contenido">
   <h2>Bienvenido, <?= htmlspecialchars($nombre) ?> 👋</h2>
   <?php if ($rol == 1): ?>
-    <p>Como administrador, puedes gestionar empresas proveedoras, usuarios registrados y revisar todas las cotizaciones.</p>
-  <?php elseif ($rol == 2): ?>
-    <p>Como proveedor, puedes gestionar tus productos, ver las cotizaciones que has recibido y editar tu perfil de empresa.</p>
-  <?php elseif ($rol == 3): ?>
-    <p>Como cliente, puedes explorar el catálogo, generar proformas y revisar tu historial.</p>
-  <?php endif; ?>
+  <p>Como administrador, puedes gestionar empresas, usuarios y revisar todas las cotizaciones.</p>
+<?php elseif ($rol == 2): ?>
+  <p>Como vendedor/cotizador, puedes generar proformas y revisar tu historial.</p>
+<?php elseif ($rol == 4): ?>
+  <p>Como auditor, puedes consultar el historial y los logs del sistema.</p>
+<?php elseif ($rol == 5): ?>
+  <p>Como supervisor, gestionas productos, componentes y proveedores.</p>
+<?php elseif ($rol == 6): ?>
+  <p>Como analista comercial, puedes consultar proformas y reportes.</p>
+<?php endif; ?>
 </div></div>
 
 

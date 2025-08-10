@@ -6,40 +6,38 @@
     </div>
   </div>
 
-  <center>
-    <a href="auth/logout.php" class="btn-cerrar-sesion">Cerrar sesión</a>
-  </center>
+  <center><a href="auth/logout.php" class="btn-cerrar-sesion">Cerrar sesión</a></center>
 
-  <h5 class="ui horizontal divider header text-primary">Módulos de Gestión</h5>
+  <h5 class="ui horizontal divider header text-primary">Gestión de Usuarios</h5>
   <ul class="nav flex-column bg-white mb-0">
-    <li class="nav-item"><a class="nav-link" onclick="cargarDirecto('administrador/lista_empresas.php')">Empresas</a></li> 
-	   
-	  <!-- Para añadir la redirección a las opciones, añadir un onclick, algo de este estilo:
-     onclick="cargarDirecto('administrador/lista_empresas.php')" al lado derecho de class="nav-link" -->
-
-	  
-	  
-    <li class="nav-item"><a class="nav-link" onclick="cargarDirecto('administrador/lista_usuarios.php')">Usuarios</a></li>
-    <li class="nav-item"><a class="nav-link" onclick="cargarDirecto('administrador/todas_cotizaciones.php')">Cotizaciones</a></li>
+    <li><a class="nav-link" onclick="cargarDirecto('administrador/lista_usuarios.php')">Usuarios</a></li>
+    <li><a class="nav-link">Roles y permisos</a></li>
+    <li><a class="nav-link">Restablecer contraseñas</a></li>
   </ul>
 
-  <h5 class="ui horizontal divider header text-primary">Productos proveedor</h5>
-<ul class="nav flex-column bg-white mb-0">
-  <li class="nav-item">
-    <a class="nav-link" onclick="cargarDirecto('administrador/productos/crear_producto.php')">
-      Crear producto
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" onclick="cargarDirecto('administrador/productos/lista_productos.php')">
-      Listar productos
-    </a>
-  </li>
-</ul>
-
-
-  <h5 class="ui horizontal divider header text-primary">Insertar texto de sección</h5>
+  <h5 class="ui horizontal divider header text-primary">Empresas y Proveedores</h5>
   <ul class="nav flex-column bg-white mb-0">
-    <li class="nav-item"><a class="nav-link">Insertar texto de opción</a></li>
+    <li><a class="nav-link" onclick="cargarDirecto('administrador/lista_empresas.php')">Lista de empresas</a></li>
+    <li><a class="nav-link" onclick="cargarDirecto('administrador/registro_empresa.php')">Registrar empresa</a></li>
+  </ul>
+
+  <h5 class="ui horizontal divider header text-primary">Cotizaciones</h5>
+  <ul class="nav flex-column bg-white mb-0">
+    <li><a class="nav-link" onclick="cargarDirecto('administrador/todas_cotizaciones.php')">Todas las cotizaciones</a></li>
+    <li><a class="nav-link" onclick="cargarDirecto('administrador/detalles_cotizaciones.php')">Detalles de cotizaciones</a></li>
+  </ul>
+
+  <h5 class="ui horizontal divider header text-primary">Productos</h5>
+  <ul class="nav flex-column bg-white mb-0">
+    <li><a class="nav-link" onclick="cargarDirecto('administrador/productos/crear_producto.php')">Crear producto</a></li>
+    <li><a class="nav-link" onclick="cargarDirecto('administrador/productos/lista_productos.php')">Listar productos</a></li>
+  </ul>
+
+  <h5 class="ui horizontal divider header text-primary">Sistema</h5>
+  <ul class="nav flex-column bg-white mb-0">
+    <li><a class="nav-link">Auditoría y logs</a></li>
+    <li><a class="nav-link">Configuración</a></li>
+    <li><a class="nav-link">Respaldos</a></li>
+    <li><a class="nav-link">Estadísticas</a></li>
   </ul>
 </div>

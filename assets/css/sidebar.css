@@ -13,11 +13,12 @@ body {
   font-family: Arial, sans-serif;
 }
 
+
 .vertical-nav {
   width: 250px;
   position: fixed;
   top: 0;
-  left: -250px;
+  left: 0;                     
   height: 100vh;
   background: linear-gradient(to bottom, var(--azul-claro), var(--azul-oscuro));
   transition: left 0.3s ease;
@@ -26,13 +27,14 @@ body {
 }
 
 .vertical-nav.active {
-  left: 0;
+  left: -250px;
 }
+
 
 #sidebarToggle {
   position: fixed;
   top: 20px;
-  left: 10px;
+  left: 190px;                 
   background: var(--azul-claro);
   color: white;
   border: none;
@@ -43,19 +45,20 @@ body {
   transition: left 0.3s ease;
 }
 
-#sidebarToggle.sidebar-open {
-  left: 205px; 
-}
+
+#sidebarToggle.sidebar-open { left: 205px; }
+#sidebar.active ~ #sidebarToggle { left: 10px; }
+
 
 #contenido-wrapper {
-  margin-left: 25px;
+  margin-left: 250px;         
   transition: margin-left 0.3s ease;
   padding: 20px;
 }
 
-#contenido-wrapper.sidebar-open {
-  margin-left: 250px;
-}
+
+#contenido-wrapper.sidebar-open { margin-left: 250px; }
+#sidebar.active ~ #contenido-wrapper { margin-left: 25px; }
 
 .vertical-nav .media {
   display: flex;
@@ -112,6 +115,7 @@ body {
   padding: 8px 20px;
 }
 
+/* Botón cerrar sesión */
 .btn-cerrar-sesion {
   display: block;
   width: 90%;
@@ -132,4 +136,3 @@ body {
   color: white;
   text-decoration: none;
 }
-
