@@ -11,6 +11,7 @@
   <h5 class="ui horizontal divider header text-primary">Gestión de Usuarios</h5>
   <ul class="nav flex-column bg-white mb-0">
     <li><a class="nav-link" onclick="cargarDirecto('administrador/lista_usuarios.php')">Usuarios</a></li>
+	<li><a class="nav-link" onclick="cargarDirecto('administrador/registro_usuario.php')">Registrar nuevo usuario</a></li>
     <li><a class="nav-link">Roles y permisos</a></li>
     <li><a class="nav-link">Restablecer contraseñas</a></li>
   </ul>

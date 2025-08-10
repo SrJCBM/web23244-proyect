@@ -1,4 +1,10 @@
 <?php
+session_start();
+if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 1) {
+    header("Location: ../index.php");
+    exit;
+}
+
 require_once("../includes/conexion.php");
 
 $nombre = $_POST["nombre_completo"];
@@ -6,7 +12,7 @@ $correo = $_POST["correo"];
 $nickname = $_POST["nickname"];
 $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
 $fecha = $_POST["fecha_nacimiento"];
-$rol = 3; // Suponiendo que "Cliente" es rol 3
+$rol = $_POST["id_rol"];
 $estado = "activo";
 
 // Validar que correo o nickname no existan
@@ -25,7 +31,7 @@ $stmt = $conexion->prepare("INSERT INTO usuarios (nombre_completo, correo, contr
 $stmt->bind_param("sssssis", $nombre, $correo, $password, $nickname, $fecha, $rol, $estado);
 
 if ($stmt->execute()) {
-    header("Location: ../auth/login.php?registro=ok");
+    header("Location: lista_usuarios.php?registro=ok");
     exit;
 } else {
     echo "Error al registrar usuario.";
