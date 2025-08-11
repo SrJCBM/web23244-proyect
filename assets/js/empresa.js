@@ -1,37 +1,58 @@
-document.addEventListener("DOMContentLoaded", () => {
+// assets/js/empresa.js
+window.initEmpresaForm = function initEmpresaForm() {
   const form = document.getElementById("formEmpresa");
+  if (!form) return;
 
-  form.addEventListener("submit", function (e) {
+  // Evitar doble binding si recargas la vista
+  if (form.dataset.bound === "1") return;
+  form.dataset.bound = "1";
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
     const formData = new FormData(form);
 
-    fetch("registro_empresa.php", {
-      method: "POST",
-      body: formData
-    })
-      .then(res => res.text())
-      .then(respuesta => {
-        alert("✅ Empresa registrada correctamente.");
-        form.reset(); // Limpiar formulario
-        cargarDirecto("Electrodomesticos/proveedor/perfil_empresa.php"); // Redirige al perfil
-      })
-      .catch(err => {
-        console.error("Error:", err);
-        alert("❌ Ocurrió un error al registrar la empresa.");
+    try {
+      const res = await fetch(form.getAttribute('action'), {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { "Accept": "application/json", "X-Requested-With": "XMLHttpRequest" }
       });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        alert("❌ " + (data.msg || "No se pudo registrar la empresa."));
+        return;
+      }
+
+      alert("✅ Empresa registrada correctamente.");
+      form.reset();
+
+      if (typeof cargarDirecto === "function") {
+        cargarDirecto("Electrodomesticos/proveedor/perfil_empresa.php");
+      } else {
+        window.location.href = "index.php";
+      }
+    } catch (err) {
+      console.error(err);
+      alert("❌ Ocurrió un error al registrar la empresa.");
+    }
   });
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof window.initEmpresaForm === "function") window.initEmpresaForm();
 });
 
-
-function cambiarEstadoEmpresa(id, nuevoEstado) {
+window.cambiarEstadoEmpresa = async function (id, nuevoEstado) {
   if (!confirm(`¿Seguro que deseas cambiar el estado a ${nuevoEstado}?`)) return;
-
-  fetch(`admin/actualizar_estado_empresa.php?id=${id}&estado=${nuevoEstado}`)
-    .then(res => res.text())
-    .then(() => location.reload())
-    .catch(err => {
-      alert("Error al actualizar estado.");
-      console.error(err);
-    });
-}
+  try {
+    await fetch(
+      `administrador/actualizar_estado_empresa.php?id=${encodeURIComponent(id)}&estado=${encodeURIComponent(nuevoEstado)}`
+    );
+    location.reload();
+  } catch (err) {
+    console.error(err);
+    alert("Error al actualizar estado.");
+  }
+};

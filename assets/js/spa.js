@@ -71,6 +71,7 @@ function cargarDirecto(ruta) {
     })
     .then(html => {
       document.getElementById("contenido").innerHTML = html;
+      if (typeof window.initEmpresaForm === "function") window.initEmpresaForm();
     })
     .catch(err => {
       console.error("Error al cargar:", err);
