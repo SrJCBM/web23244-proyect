@@ -1,6 +1,6 @@
 <?php
 require_once("../../includes/verificar_rol.php");
-verificarRol([1]); // admin
+verificarRol([1,2,5,6]); // admin
 require_once("../../includes/conexion.php");
 
 /** Parámetros de paginación */

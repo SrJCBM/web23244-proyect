@@ -1,6 +1,6 @@
 <?php
 require_once("../includes/verificar_rol.php");
-verificarRol([1]); // Solo administrador
+verificarRol([1,2,6]); // Solo administrador
 
 include("../includes/conexion.php");
 

@@ -17,7 +17,7 @@
 
   <h5 class="ui horizontal divider header text-primary">Catálogo</h5>
   <ul class="nav flex-column bg-white mb-0">
-    <li><a class="nav-link" onclick="cargarDirecto('Electrodomesticos/proveedor/lista_productos.php')">Productos</a></li>
+    <li><a class="nav-link" onclick="cargarDirecto('administrador/productos/lista_productos.php')">Productos</a></li>
     <li><a class="nav-link" onclick="cargarDirecto('administrador/lista_empresas.php')">Proveedores</a></li>
     <li><a class="nav-link">Componentes</a></li>
   </ul>

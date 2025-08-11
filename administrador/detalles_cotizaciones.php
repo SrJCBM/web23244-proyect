@@ -1,6 +1,6 @@
 <?php
 require_once("../includes/verificar_rol.php");
-verificarRol([1]); 
+verificarRol([1,2,6]); 
 include("../includes/conexion.php");
 
 // Traer todas las cotizaciones con información del cliente

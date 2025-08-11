@@ -1,6 +1,6 @@
 <?php
 require_once("../../includes/verificar_rol.php");
-verificarRol([2]);
+verificarRol([5]);
 
 include("../../includes/conexion.php");
 
