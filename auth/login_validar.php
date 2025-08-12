@@ -6,6 +6,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require_once("../includes/conexion.php");
+require_once("../includes/auditoria_accesos.php");
 
 $usuario = trim($_POST["usuario"]);
 $password = $_POST["password"];
@@ -20,6 +21,7 @@ if ($result->num_rows === 1) {
     $row = $result->fetch_assoc();
 
     if (password_verify($password, $row["contraseña"])) {
+		session_regenerate_id(true);  
         $_SESSION["id_usuario"] = $row["id_usuario"];
         $_SESSION["nombre"] = $row["nombre_completo"];
         $_SESSION["id_rol"] = $row["id_rol"];
@@ -45,14 +47,18 @@ if ($result->num_rows === 1) {
             }
         }
 
-        $stmt->close();
+        
+		registrarAccesoExitoso($conexion, (int)$row["id_usuario"]); 
+		$stmt->close();
         header("Location: ../index.php");
         exit();
     } else {
+		registrarAccesoFallido($conexion, $usuario, 'password_incorrecto');
         header("Location: login.php?error=Contraseña incorrecta");
         exit();
     }
 } else {
+	registrarAccesoFallido($conexion, $usuario, 'usuario_no_encontrado');
     header("Location: login.php?error=Usuario no encontrado");
     exit();
 }
