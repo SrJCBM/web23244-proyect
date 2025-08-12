@@ -19,6 +19,50 @@ require_once("../includes/conexion.php");
 .btn-light{background:#f1f1f1}
 .btn-danger{background:#dc3545;color:#fff}
 .small{font-size:12px;color:#666}
+	
+/* ---- LISTA DE PRODUCTOS (tarjetas) ---- */
+.cards-grid{
+  display:grid;
+  gap:12px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  align-items: stretch;
+}
+
+.cards-grid .card{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin:0;                 /* la grid maneja el espaciado */
+  padding:10px 12px;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  background:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
+}
+
+.cards-grid .card input[type="checkbox"]{
+  margin-top:4px;
+}
+
+.cards-grid .card b{
+  display:inline-block;
+  margin-right:6px;
+}
+
+/* ---- TABLA RESUMEN ---- */
+.table-wrap{ overflow:auto; }
+.table{ width:100%; border-collapse:collapse; min-width:640px; }
+.table th, .table td{
+  border:1px solid #e5e7eb; padding:10px; text-align:left; vertical-align:top;
+}
+.table th{ background:#f8fafc; }
+
+/* Botones en la fila inferior */
+.wiz .btn{ padding:10px 14px; border-radius:8px; }
+
+/* Inputs */
+.wiz input, .wiz select{ height:36px; padding:6px 10px; border:1px solid #cbd5e1; border-radius:8px; }
+
 </style>
 
 <div class="wiz">

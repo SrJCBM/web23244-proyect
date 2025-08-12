@@ -73,10 +73,13 @@ function cargarDirecto(ruta) {
       const cont = document.getElementById("contenido");
       cont.innerHTML = html;
 
-      // Si es el wizard, inicializa su JS (ya cargado globalmente por index.php)
-      if (ruta.indexOf('proforma_wizard.php') !== -1 && typeof window.initProformaWizard === 'function') {
-        window.initProformaWizard();
+      // --- Inicializadores por presencia en el DOM ---
+      // Proforma Wizard: si existe .wiz o #selCategoria, inicializa
+      const isWizard = !!(cont.querySelector('.wiz') || cont.querySelector('#selCategoria'));
+      if (isWizard && typeof window.initProformaWizard === 'function') {
+        setTimeout(() => window.initProformaWizard(), 0);
       }
+
     })
     .catch(err => {
       console.error("Error al cargar:", err);
