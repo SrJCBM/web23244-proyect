@@ -19,6 +19,8 @@ $nombre = $_SESSION["nombre"];
   <link rel="stylesheet" href="assets/css/admin-crud.css">
   <script src="assets/js/spa.js" defer></script>
   <script src="assets/js/sidebar.js" defer></script>
+	<script src="assets/js/proforma_wizard.js" defer></script>
+
   <style>
     body { font-family: Arial, sans-serif; margin: 0; }
     nav {

@@ -70,11 +70,34 @@ function cargarDirecto(ruta) {
       return res.text();
     })
     .then(html => {
-      document.getElementById("contenido").innerHTML = html;
-      if (typeof window.initEmpresaForm === "function") window.initEmpresaForm();
+      const cont = document.getElementById("contenido");
+      cont.innerHTML = html;
+
+      // Si es el wizard, inicializa su JS (ya cargado globalmente por index.php)
+      if (ruta.indexOf('proforma_wizard.php') !== -1 && typeof window.initProformaWizard === 'function') {
+        window.initProformaWizard();
+      }
     })
     .catch(err => {
       console.error("Error al cargar:", err);
       document.getElementById("contenido").innerHTML = "<p>Error al cargar contenido.</p>";
     });
+}
+
+
+async function getJSON(url) {
+  const res = await fetch(url, { credentials: 'same-origin' });
+  if (!res.ok) throw new Error(`GET ${url} -> ${res.status}`);
+  return await res.json();
+}
+
+async function postJSON(url, data) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(`POST ${url} -> ${res.status}`);
+  return await res.json();
 }
