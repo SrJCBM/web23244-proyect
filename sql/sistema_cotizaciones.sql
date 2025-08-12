@@ -21,7 +21,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `sistema_cotizaciones`
 --
-
+CREATE DATABASE IF NOT EXISTS `sistema_cotizaciones` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE `sistema_cotizaciones`;
 -- --------------------------------------------------------
 
 --
