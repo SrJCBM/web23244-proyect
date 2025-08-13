@@ -14,6 +14,5 @@
   <ul class="nav flex-column bg-white mb-0">
     <li class="nav-item"><a class="nav-link" onclick="cargarDirecto('auditor/lista_accesos.php')">Historial de accesos</a></li>
     <li class="nav-item"><a class="nav-link">Logs de actividades</a></li>
-    <li class="nav-item"><a class="nav-link">Reportes de auditoría</a></li>
   </ul>
 </div>

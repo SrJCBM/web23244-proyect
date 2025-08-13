@@ -10,18 +10,12 @@
 
   <h5 class="ui horizontal divider header text-primary">Productos</h5>
   <ul class="nav flex-column bg-white mb-0">
-    <li><a class="nav-link" onclick="cargarDirecto('administrador/productos/crear_producto.php')">Crear producto</a></li>
-    <li><a class="nav-link" onclick="cargarDirecto('administrador/productos/lista_productos.php')">Editar / Consultar</a></li>
-    <li><a class="nav-link">Componentes / Accesorios</a></li>
-    <li><a class="nav-link">Configurar accesorios</a></li>
-    <li><a class="nav-link">Precios y stock</a></li>
+    <li><a class="nav-link" onclick="cargarDirecto('administrador/productos/lista_productos.php')">Productos</a></li>
+    <li><a class="nav-link" onclick="cargarDirecto('administrador/componentes/lista_opciones.php')">Componentes</a></li>
   </ul>
 
   <h5 class="ui horizontal divider header text-primary">Proveedores</h5>
   <ul class="nav flex-column bg-white mb-0">
     <li><a class="nav-link" onclick="cargarDirecto('administrador/lista_empresas.php')">Lista de proveedores</a></li>
-    <li><a class="nav-link" onclick="cargarDirecto('administrador/registro_empresa.php')">Registrar proveedor</a></li>
-    <li><a class="nav-link" onclick="cargarDirecto('Electrodomesticos/proveedor/perfil_empresa.php')">Perfil de proveedor</a></li>
-    <li><a class="nav-link">Asociar productos</a></li>
   </ul>
 </div>
