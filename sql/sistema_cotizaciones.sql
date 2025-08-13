@@ -30,17 +30,23 @@ DELIMITER $$
 --
 -- Functions
 --
-CREATE DEFINER=`root`@`localhost` FUNCTION `f_accion_estado` (`old_val` VARCHAR(20), `new_val` VARCHAR(20)) RETURNS VARCHAR(32) CHARSET utf8mb4 COLLATE utf8mb4_general_ci BEGIN
-  IF old_val IS NULL OR new_val IS NULL OR old_val = new_val THEN
-    RETURN 'editar';
-  END IF;
-  IF old_val='activo' AND new_val='inactivo' THEN
-    RETURN 'inactivar';
-  ELSEIF old_val='inactivo' AND new_val='activo' THEN
-    RETURN 'activar';
-  END IF;
-  RETURN 'cambiar_estado';
-END$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `f_accion_estado`(
+    `old_val` VARCHAR(20),
+    `new_val` VARCHAR(20)
+) RETURNS VARCHAR(32)
+DETERMINISTIC
+NO SQL
+BEGIN
+    IF old_val IS NULL OR new_val IS NULL OR old_val = new_val THEN
+        RETURN 'editar';
+    END IF;
+    IF old_val='activo' AND new_val='inactivo' THEN
+        RETURN 'inactivar';
+    ELSEIF old_val='inactivo' AND new_val='activo' THEN
+        RETURN 'activar';
+    END IF;
+    RETURN 'cambiar_estado';
+END;
 
 DELIMITER ;
 
