@@ -19,5 +19,7 @@
   <ul class="nav flex-column bg-white mb-0">
     <li><a class="nav-link" onclick="cargarDirecto('administrador/productos/lista_productos.php')">Ver productos</a></li>
 	  <li><a class="nav-link" onclick="cargarDirecto('administrador/componentes/lista_opciones.php')">Ver componentes</a></li>
+	  <li><a class="nav-link" onclick="cargarDirecto('cliente/lista_clientes.php')">Ver clientes</a></li>
+	  <li><a class="nav-link" onclick="cargarDirecto('administrador/lista_empresas.php')">Ver proveedores</a></li>
   </ul>
 </div>

@@ -17,7 +17,6 @@
   <h5 class="ui horizontal divider header text-primary">Empresas y Proveedores</h5>
   <ul class="nav flex-column bg-white mb-0">
     <li><a class="nav-link" onclick="cargarDirecto('administrador/lista_empresas.php')">Lista de proveedores</a></li>
-    <li><a class="nav-link" onclick="cargarDirecto('administrador/registro_empresa.php')">Registrar empresa</a></li>
   </ul>
 
   <h5 class="ui horizontal divider header text-primary">Cotizaciones</h5>

@@ -1,8 +1,13 @@
 <?php
+// administrador/productos/crear_producto.php
+define('APP_DEBUG', true);
+if (APP_DEBUG) { ini_set('display_errors', 1); error_reporting(E_ALL); }
+
 require_once("../../includes/verificar_rol.php");
-verificarRol([1,5]); // Solo administrador
+verificarRol([1,5]); // Admin / Supervisor
 
 require_once("../../includes/conexion.php");
+$conexion->set_charset("utf8mb4");
 
 // ---- Util: normalizar características (JSON o lista por comas) ----
 function normalizarCaracteristicas($raw) {
@@ -23,35 +28,43 @@ function normalizarCaracteristicas($raw) {
 // ---- POST: insertar producto ----
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $id_empresa   = (int)($_POST["id_empresa"] ?? 0);
-  $nombre       = $_POST["nombre"] ?? '';
-  $descripcion  = $_POST["descripcion"] ?? '';
-  $marca        = $_POST["marca"] ?? '';
-  $modelo       = $_POST["modelo"] ?? '';
+  $id_categoria = (int)($_POST["id_categoria"] ?? 0); // opcional -> NULL si 0
+  $nombre       = trim($_POST["nombre"] ?? '');
+  $descripcion  = trim($_POST["descripcion"] ?? '');
+  $marca        = trim($_POST["marca"] ?? '');
+  $modelo       = trim($_POST["modelo"] ?? '');
   $precio       = (float)($_POST["precio"] ?? 0);
   $stock        = (int)($_POST["stock"] ?? 0);
   $caracts      = normalizarCaracteristicas($_POST["caracteristicas"] ?? '');
   $fecha        = date("Y-m-d");
+  $estado       = 1; // activo por defecto
 
-  if ($id_empresa <= 0) {
-    echo "<p style='color:red;'>Debes seleccionar una empresa proveedora.</p>";
+  if ($id_empresa <= 0 || $nombre === '') {
+    echo "<p style='color:red;'>Empresa y nombre son obligatorios.</p>";
   } else {
-    // Mantenemos el mismo orden de columnas que usa el módulo de proveedor
+    // Inserta respetando tu esquema (id_categoria opcional y timestamps)
     $sql = "INSERT INTO productos
-            (nombre, descripcion, caracteristicas, marca, modelo, precio_base, stock, id_empresa, fecha_creacion)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+              (nombre, descripcion, caracteristicas, marca, modelo,
+               precio_base, stock, id_categoria, id_empresa, estado,
+               fecha_creacion, created_at, updated_at)
+            VALUES
+              (?, ?, ?, ?, ?, ?, ?, NULLIF(?,0), ?, ?, ?, NOW(), NOW())";
 
     $stmt = $conexion->prepare($sql);
     if (!$stmt) { echo "<p style='color:red;'>Error prepare(): {$conexion->error}</p>"; exit; }
 
-    // Tipos: s s s s s d i i s   → "sssssdiis"
+    // TIPOS CORRECTOS (11 placeholders): ssss s d i i i i s  => "sssssdiiiis"
     if (!$stmt->bind_param(
-      "sssssdiis",
-      $nombre, $descripcion, $caracts, $marca, $modelo, $precio, $stock, $id_empresa, $fecha
-    )) { echo "<p style='color:red;'>Error bind_param(): {$stmt->error}</p>"; exit; }
+      "sssssdiiiis",
+      $nombre, $descripcion, $caracts, $marca, $modelo,
+      $precio, $stock, $id_categoria, $id_empresa, $estado, $fecha
+    )) {
+      echo "<p style='color:red;'>Error bind_param(): {$stmt->error}</p>"; exit;
+    }
 
     if ($stmt->execute()) {
       echo "<p style='color:green;'>✅ Producto creado correctamente.</p>";
-      echo "<a href=\"#\" onclick=\"cargarDirecto('administrador/productos/lista_productos.php')\">Ver lista</a>";
+      echo "<a href=\"#\" onclick=\"cargarDirecto('administrador/productos/lista_productos.php');return false;\">Ver lista</a>";
       $stmt->close(); $conexion->close(); exit;
     } else {
       echo "<p style='color:red;'>Error al crear: ".htmlspecialchars($stmt->error)."</p>";
@@ -60,14 +73,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   }
 }
 
-// ---- GET: cargar empresas proveedoras para el dropdown ----
-// Usamos la tabla que ya maneja Admin: empresas_proveedoras
+// ---- GET: cargar empresas y categorías para los selects ----
 $empresas = $conexion->query("
   SELECT id_empresa, nombre
   FROM empresas_proveedoras
-  WHERE estado = 'activa'
+  WHERE estado='activa'
   ORDER BY nombre ASC
 ");
+$categorias = $conexion->query("SELECT id_categoria, nombre FROM categorias ORDER BY nombre ASC");
 ?>
 <h2>➕ Crear producto (Admin)</h2>
 
@@ -85,6 +98,14 @@ $empresas = $conexion->query("
     <option value=''>-- Selecciona --</option>
     <?php while ($e = $empresas->fetch_assoc()): ?>
       <option value="<?= (int)$e['id_empresa'] ?>"><?= htmlspecialchars($e['nombre']) ?></option>
+    <?php endwhile; ?>
+  </select><br><br>
+
+  <label>Categoría (opcional):</label><br>
+  <select name="id_categoria">
+    <option value="0">-- Sin categoría --</option>
+    <?php while ($c = $categorias->fetch_assoc()): ?>
+      <option value="<?= (int)$c['id_categoria'] ?>"><?= htmlspecialchars($c['nombre']) ?></option>
     <?php endwhile; ?>
   </select><br><br>
 
