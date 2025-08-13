@@ -11,7 +11,7 @@
   <h5 class="ui horizontal divider header text-primary">Proformas</h5>
   <ul class="nav flex-column bg-white mb-0">
     <li><a class="nav-link" onclick="cargarDirecto('cliente/proforma_wizard.php')">Generar proforma</a></li>
-    <li><a class="nav-link" onclick="cargarDirecto('cliente/historial_proformas.php')">Mis proformas</a></li>
+    <li><a class="nav-link" onclick="cargarDirecto('cliente/historial_proformas.php')">Ver proformas</a></li>
   </ul>
 
 

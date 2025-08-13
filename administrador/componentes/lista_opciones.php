@@ -8,21 +8,30 @@ require_once("../../includes/verificar_rol.php");
 verificarRol([1,2,5,6]);
 require_once("../../includes/conexion.php");
 
+$conexion->set_charset("utf8mb4");
+
 $ROL = (int)($_SESSION['id_rol'] ?? 0);
 $ES_ADMIN = in_array($ROL,[1,5]);
 
 $id_cat = (int)($_GET['categoria'] ?? 0);
+$q      = trim($_GET['q'] ?? '');
+
 $cats = $conexion->query("SELECT id_categoria,nombre FROM categorias ORDER BY nombre")->fetch_all(MYSQLI_ASSOC);
 
-$where = "1=1";
-if ($id_cat>0) $where = "oc.id_categoria=".$id_cat;
+$where = ["1=1"];
+if ($id_cat>0) $where[] = "oc.id_categoria=".$id_cat;
+if ($q!=='') {
+  $qEsc = $conexion->real_escape_string($q);
+  $where[] = "(oc.nombre LIKE '%$qEsc%' OR oc.tipo LIKE '%$qEsc%')";
+}
+$whereSql = implode(" AND ", $where);
 
 $sql = "
   SELECT oc.id_opcion, oc.id_categoria, c.nombre AS categoria,
          oc.nombre, oc.tipo, oc.modo_precio, oc.valor_precio, oc.obligatorio, oc.visible
   FROM opciones_categoria oc
   JOIN categorias c ON c.id_categoria=oc.id_categoria
-  WHERE $where
+  WHERE $whereSql
   ORDER BY oc.id_categoria, oc.tipo, oc.nombre
 ";
 $rs = $conexion->query($sql);
@@ -39,6 +48,7 @@ $rs = $conexion->query($sql);
       </option>
     <?php endforeach; ?>
   </select>
+  <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" placeholder="Buscar por nombre o tipo" style="padding:6px;width:260px;">
   <button class="btn btn-primary" type="submit">Filtrar</button>
   <?php if ($ES_ADMIN): ?>
     <a href="#" onclick="cargarDirecto('administrador/componentes/crear_opcion.php<?= $id_cat?('?categoria='.$id_cat):'' ?>');return false;">➕ Crear opción</a>
@@ -74,11 +84,9 @@ $rs = $conexion->query($sql);
       <td><?= $r['visible']? 'Sí':'No' ?></td>
       <?php if ($ES_ADMIN): ?>
       <td>
-        <a href="#" onclick="cargarDirecto('administrador/componentes/editar_opcion.php?id=<?= (int)$r['id_opcion'] ?>');return false;">✏️</a>
+        <a href="#" onclick="cargarDirecto('administrador/componentes/editar_opcion.php?id=<?= (int)$r['id_opcion'] ?>');return false;" title="Editar">✏️</a>
         &nbsp;
-        <a href="#"
-           onclick="if(!confirm('¿Eliminar esta opción?'))return false;
-                    cargarDirecto('administrador/componentes/eliminar_opcion.php?id=<?= (int)$r['id_opcion'] ?>');return false;">🗑️</a>
+        <a href="#" onclick="if(!confirm('¿Eliminar esta opción?'))return false;cargarDirecto('administrador/componentes/eliminar_opcion.php?id=<?= (int)$r['id_opcion'] ?>');return false;" title="Eliminar">🗑️</a>
       </td>
       <?php endif; ?>
     </tr>

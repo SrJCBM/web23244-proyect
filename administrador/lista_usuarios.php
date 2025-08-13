@@ -1,227 +1,168 @@
 <?php
-require_once("../includes/verificar_rol.php");
-verificarRol([1]);
+// administrador/lista_usuarios.php
+define('APP_DEBUG', true);
+if (APP_DEBUG) { ini_set('display_errors', 1); error_reporting(E_ALL); }
 
+require_once("../includes/verificar_rol.php");
+// Solo admin puede ver/gestionar usuarios
+verificarRol([1]);
 require_once("../includes/conexion.php");
 
-// OPCIONAL: mostrar errores en desarrollo
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+$conexion->set_charset("utf8mb4");
 
-/** ---------------------------------------
- * Helper de navegación después de acciones
- * -------------------------------------- */
-function go($msg = '') {
-  // Si prefieres volver directo a esta lista:
-  // $url = "lista_usuarios.php";
-  $url = "../index.php";
-  if ($msg !== '') $url .= (strpos($url,'?')!==false ? '&' : '?') . 'msg=' . urlencode($msg);
-  header("Location: $url");
+// ---- Filtros + paginación ----
+$q        = trim($_GET['q'] ?? '');
+$perPage  = 10;
+$page     = max(1, (int)($_GET['page'] ?? 1));
+$offset   = ($page - 1) * $perPage;
+
+$where = ["1=1"];
+$args  = [];
+$types = "";
+
+if ($q !== '') {
+  $where[] = "(u.nombre_completo LIKE CONCAT('%',?,'%')
+               OR u.correo LIKE CONCAT('%',?,'%')
+               OR u.nickname LIKE CONCAT('%',?,'%'))";
+  array_push($args, $q, $q, $q);
+  $types .= "sss";
+}
+$whereSql = implode(" AND ", $where);
+
+// ---- Toggle estado (seguro) ----
+function goList($extra=''){
+  $url = "administrador/lista_usuarios.php";
+  if ($extra!=='') { $url .= (strpos($url,'?')!==false?'&':'?').$extra; }
+  header("Location: ../index.php?view=$url");
   exit;
 }
-
-/** -----------------------
- * Paginación (4 por página)
- * ---------------------- */
-$perPage = 4;
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-
-// Total de usuarios
-$total = 0;
-if ($rc = $conexion->query("SELECT COUNT(*) AS total FROM usuarios")) {
-  $row = $rc->fetch_assoc();
-  $total = (int)($row['total'] ?? 0);
-}
-$totalPages = max(1, (int)ceil($total / $perPage));
-if ($page > $totalPages) $page = $totalPages;
-$offset = ($page - 1) * $perPage;
-
-/** ---------------------------------------
- * Toggle estado (activo/inactivo) por GET
- * -------------------------------------- */
 if (isset($_GET['toggle_estado'])) {
-  $id = (int) $_GET['toggle_estado'];
+  $id = (int)$_GET['toggle_estado'];
+  if ($id === (int)($_SESSION['id_usuario'] ?? 0)) { goList('msg=yo_mismo'); }
 
-  // No permitir que un usuario cambie su propio estado
-  if ($id === (int)$_SESSION['id_usuario']) {
-    go('yo_mismo');
+  // Rol/estado actual
+  $st = $conexion->prepare("SELECT id_rol, estado FROM usuarios WHERE id_usuario=?");
+  $st->bind_param("i",$id); $st->execute();
+  $st->bind_result($rrol,$rest); $ok=$st->fetch(); $st->close();
+  if (!$ok) goList('msg=notfound');
+
+  // Proteger último admin activo
+  if ((int)$rrol===1 && $rest==='activo') {
+    $c = $conexion->query("SELECT COUNT(*) n FROM usuarios WHERE id_rol=1 AND estado='activo'");
+    $n = (int)$c->fetch_assoc()['n'];
+    if ($n<=1) goList('msg=ultimo_admin');
   }
-
-  // Obtener rol y estado actual del usuario objetivo
-  $u = $conexion->prepare("SELECT id_rol, estado FROM usuarios WHERE id_usuario=? LIMIT 1");
-  if (!$u) { error_log('prepare u: '.$conexion->error); go('err'); }
-  $u->bind_param("i", $id);
-  if (!$u->execute()) { error_log('exec u: '.$u->error); go('err'); }
-  $u->bind_result($u_rol, $u_estado);
-  $ok = $u->fetch();
-  $u->close();
-
-  if (!$ok) { go('notfound'); }
-
-  // Proteger al último admin activo
-  if ((int)$u_rol === 1 && $u_estado === 'activo') {
-    $c = $conexion->query("SELECT COUNT(*) AS n FROM usuarios WHERE id_rol=1 AND estado='activo'");
-    if (!$c) { error_log('count admins: '.$conexion->error); go('err'); }
-    $row = $c->fetch_assoc();
-    $admins_activos = (int)($row['n'] ?? 0);
-    if ($admins_activos <= 1) {
-      go('ultimo_admin');
-    }
-  }
-
-  // Toggle
-  $stmtT = $conexion->prepare("
-    UPDATE usuarios
-       SET estado = IF(estado='activo','inactivo','activo')
-     WHERE id_usuario = ?
-     LIMIT 1
-  ");
-  if (!$stmtT) { error_log('prepare upd: '.$conexion->error); go('err'); }
-  $stmtT->bind_param("i", $id);
-  if (!$stmtT->execute()) { error_log('exec upd: '.$stmtT->error); go('err'); }
-  $stmtT->close();
-
-  go('ok');
+  $up = $conexion->prepare("UPDATE usuarios SET estado=IF(estado='activo','inactivo','activo') WHERE id_usuario=? LIMIT 1");
+  $up->bind_param("i",$id);
+  $up->execute();
+  $up->close();
+  goList('msg=ok');
 }
 
-/** ----------------------------
- * Función para pintar paginación
- * --------------------------- */
-function renderPaginationUsuarios($page, $totalPages){
-  if ($totalPages <= 1) return;
-
-  $prev = max(1, $page - 1);
-  $next = min($totalPages, $page + 1);
-
-  echo '<div class="pagination">';
-
-  // Botón Anterior
-  echo '<button '.($page==1?'disabled':'').' ';
-  echo 'onclick="if(window.cargarDirecto){cargarDirecto(\'administrador/lista_usuarios.php?page='.$prev.'\');return false;}">';
-  echo '&laquo; Anterior</button>';
-
-  // Ventana de páginas (actual ±2)
-  $start = max(1, $page - 2);
-  $end   = min($totalPages, $page + 2);
-
-  if ($start > 1) {
-    echo '<a class="page" href="administrador/lista_usuarios.php?page=1" ';
-    echo 'onclick="if(window.cargarDirecto){cargarDirecto(\'administrador/lista_usuarios.php?page=1\');return false;}">1</a>';
-    if ($start > 2) echo '<span>…</span>';
-  }
-
-  for ($i = $start; $i <= $end; $i++) {
-    if ($i == $page) {
-      echo '<button disabled>'.$i.'</button>';
-    } else {
-      echo '<a class="page" href="administrador/lista_usuarios.php?page='.$i.'" ';
-      echo 'onclick="if(window.cargarDirecto){cargarDirecto(\'administrador/lista_usuarios.php?page='.$i.'\');return false;}">'.$i.'</a>';
-    }
-  }
-
-  if ($end < $totalPages) {
-    if ($end < $totalPages - 1) echo '<span>…</span>';
-    echo '<a class="page" href="administrador/lista_usuarios.php?page='.$totalPages.'" ';
-    echo 'onclick="if(window.cargarDirecto){cargarDirecto(\'administrador/lista_usuarios.php?page='.$totalPages.'\');return false;}">'.$totalPages.'</a>';
-  }
-
-  // Botón Siguiente
-  echo '<button '.($page==$totalPages?'disabled':'').' ';
-  echo 'onclick="if(window.cargarDirecto){cargarDirecto(\'administrador/lista_usuarios.php?page='.$next.'\');return false;}">Siguiente &raquo;</button>';
-
-  echo '</div>';
-}
-
-/** -----------------------------------
- * Consulta paginada de usuarios (4 pp)
- * ---------------------------------- */
-$stmt = $conexion->prepare("
-  SELECT u.id_usuario, u.nombre_completo, u.correo, u.nickname, u.estado, u.id_rol, r.nombre_rol
-  FROM usuarios u
-  LEFT JOIN roles r ON u.id_rol = r.id_rol
-  ORDER BY u.nombre_completo
-  LIMIT ? OFFSET ?
-");
-if (!$stmt) { echo "<p>Error al preparar consulta: ".htmlspecialchars($conexion->error)."</p>"; }
-$stmt->bind_param("ii", $perPage, $offset);
+// ---- Total ----
+$sqlCount = "SELECT COUNT(*) n
+             FROM usuarios u
+             LEFT JOIN roles r ON r.id_rol=u.id_rol
+             WHERE $whereSql";
+$stmt = $conexion->prepare($sqlCount);
+if ($types) $stmt->bind_param($types, ...$args);
 $stmt->execute();
-$resultado = $stmt->get_result();
+$total = (int)$stmt->get_result()->fetch_assoc()['n'];
+$stmt->close();
+$totalPages = max(1, (int)ceil($total / $perPage));
 
-/** -----------------------------------
- * Mensajes (opcional, via ?msg=...)
- * ---------------------------------- */
-if (!empty($_GET['msg'])) {
-  $msgs = [
-    'ok'           => 'Estado actualizado.',
-    'yo_mismo'     => 'No puedes cambiar tu propio estado.',
-    'notfound'     => 'Usuario no encontrado.',
-    'ultimo_admin' => 'No puedes desactivar/eliminar al último administrador activo.',
-    'err'          => 'Ocurrió un error. Revisa el log del servidor.',
-    'upd_ok'       => 'Usuario actualizado correctamente.',
-    'del_ok'       => 'Usuario eliminado correctamente.',
-    'no_delete_self' => 'No puedes eliminar tu propia cuenta.',
-  ];
-  if (isset($msgs[$_GET['msg']])) {
-    echo '<p style="color:#0f766e;margin:8px 0;">'.htmlspecialchars($msgs[$_GET['msg']]).'</p>';
-  }
-}
+// ---- Página ----
+$sql = "SELECT u.id_usuario, u.nombre_completo, u.correo, u.nickname,
+               u.estado, u.id_rol, COALESCE(r.nombre_rol,'—') AS rol
+        FROM usuarios u
+        LEFT JOIN roles r ON r.id_rol=u.id_rol
+        WHERE $whereSql
+        ORDER BY u.nombre_completo ASC
+        LIMIT ? OFFSET ?";
+$args2=$args; $types2=$types."ii"; array_push($args2,$perPage,$offset);
+$stmt = $conexion->prepare($sql);
+$stmt->bind_param($types2, ...$args2);
+$stmt->execute();
+$rs = $stmt->get_result();
+
+// ---- Mensajes opcionales ----
+$msg = $_GET['msg'] ?? '';
+$MAP = [
+  'ok'=>'Estado actualizado.',
+  'yo_mismo'=>'No puedes cambiar tu propio estado.',
+  'notfound'=>'Usuario no encontrado.',
+  'ultimo_admin'=>'No puedes desactivar/eliminar al último administrador activo.',
+  'upd_ok'=>'Usuario actualizado.',
+  'del_ok'=>'Usuario eliminado.',
+  'no_delete_self'=>'No puedes eliminar tu propia cuenta.'
+];
 ?>
+<h2>Usuarios</h2>
 
-<h2>👥 Lista de Usuarios</h2>
+<?php if(isset($MAP[$msg])): ?>
+  <p style="color:#0f766e;margin:8px 0;"><?= htmlspecialchars($MAP[$msg]) ?></p>
+<?php endif; ?>
 
-<?php renderPaginationUsuarios($page, $totalPages); ?>
+<!-- Filtros -->
+<form onsubmit="cargarDirecto('administrador/lista_usuarios.php?'+new URLSearchParams(new FormData(this)).toString());return false;"
+      style="margin:10px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+  <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" placeholder="Buscar por nombre, correo o usuario" style="padding:6px;width:320px;">
+  <button class="btn btn-primary" type="submit">Buscar</button>
+</form>
 
-<table border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse:collapse;">
-  <tr>
-    <th>Nombre</th>
-    <th>Correo</th>
-    <th>Rol</th>
-    <th>Estado</th>
-    <th>Activar/Inactivar</th>
-    <th>Acciones</th>
-  </tr>
-
-  <?php if ($resultado && $resultado->num_rows > 0): ?>
-    <?php while ($row = $resultado->fetch_assoc()): ?>
+<table border="1" cellspacing="0" cellpadding="6" style="width:100%;border-collapse:collapse;">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Correo</th>
+      <th>Usuario</th>
+      <th>Rol</th>
+      <th>Estado</th>
+      <th>Activar/Inactivar</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php if($rs->num_rows===0): ?>
+      <tr><td colspan="7" style="text-align:center;color:#666">Sin resultados.</td></tr>
+    <?php else: while($u=$rs->fetch_assoc()): ?>
       <tr>
-        <td><?= htmlspecialchars($row['nombre_completo']) ?></td>
-        <td><?= htmlspecialchars($row['correo']) ?></td>
-        <td><?= htmlspecialchars($row['nombre_rol'] ?: '—') ?></td>
-        <td><?= $row['estado'] === 'activo' ? '✅ Activo' : '⛔ Inactivo' ?></td>
+        <td><?= htmlspecialchars($u['nombre_completo']) ?></td>
+        <td><?= htmlspecialchars($u['correo']) ?></td>
+        <td><?= htmlspecialchars($u['nickname']) ?></td>
+        <td><?= htmlspecialchars($u['rol']) ?></td>
+        <td><?= $u['estado']==='activo'?'✅ Activo':'⚠️ Inactivo' ?></td>
         <td>
-          <?php if ((int)$_SESSION['id_usuario'] !== (int)$row['id_usuario']): ?>
-            <a href="administrador/lista_usuarios.php?toggle_estado=<?= (int)$row['id_usuario'] ?>&page=<?= $page ?>&t=<?= time() ?>"
-               onclick="return confirm('¿Confirmas el cambio de estado?')">
-              <?= $row['estado'] === 'activo' ? '❌ Desactivar' : '✅ Activar' ?>
-            </a>
-          <?php else: ?>
-            —
-          <?php endif; ?>
+          <?php if ((int)$_SESSION['id_usuario'] !== (int)$u['id_usuario']): ?>
+            <a href="administrador/lista_usuarios.php?toggle_estado=<?= (int)$u['id_usuario'] ?>&page=<?= $page ?>&t=<?= time() ?>"
+               onclick="return confirm('¿Confirmas el cambio de estado?')">Cambiar</a>
+          <?php else: ?>—<?php endif; ?>
         </td>
         <td>
           <a href="#"
-             title="Editar"
-             onclick="cargarDirecto('administrador/editar_usuario.php?id=<?= (int)$row['id_usuario'] ?>&page=<?= $page ?>'); return false;">✏️</a>
+             onclick="cargarDirecto('administrador/editar_usuario.php?id=<?= (int)$u['id_usuario'] ?>&page=<?= $page ?>');return false;" title="Editar">✏️</a>
           &nbsp;
-          <?php if ((int)$_SESSION['id_usuario'] !== (int)$row['id_usuario']): ?>
+          <?php if ((int)$_SESSION['id_usuario'] !== (int)$u['id_usuario']): ?>
             <a href="#"
-               title="Eliminar"
-               onclick="if(!confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) return false;
-                        cargarDirecto('administrador/eliminar_usuario.php?id=<?= (int)$row['id_usuario'] ?>&page=<?= $page ?>'); return false;">🗑️</a>
-          <?php else: ?>
-            —
-          <?php endif; ?>
+               onclick="if(!confirm('¿Eliminar este usuario?'))return false;cargarDirecto('administrador/eliminar_usuario.php?id=<?= (int)$u['id_usuario'] ?>&page=<?= $page ?>');return false;"
+               title="Eliminar">🗑️</a>
+          <?php else: ?>—<?php endif; ?>
         </td>
       </tr>
-    <?php endwhile; ?>
-  <?php else: ?>
-    <tr><td colspan="6" style="text-align:center;">No hay usuarios en esta página.</td></tr>
-  <?php endif; ?>
+    <?php endwhile; endif; ?>
+  </tbody>
 </table>
 
-<?php renderPaginationUsuarios($page, $totalPages); ?>
+<?php if ($totalPages>1): ?>
+  <div style="margin:12px 0;display:flex;gap:8px;align-items:center;">
+  <?php for($i=1;$i<=$totalPages;$i++): ?>
+    <?php if($i===$page): ?><strong><?= $i ?></strong>
+    <?php else: ?>
+      <a href="#" onclick="cargarDirecto('administrador/lista_usuarios.php?<?= http_build_query(['q'=>$q,'page'=>$i]) ?>');return false;"><?= $i ?></a>
+    <?php endif; ?>
+  <?php endfor; ?>
+  </div>
+<?php endif;
 
-<?php
 $stmt->close();
 $conexion->close();

@@ -3,7 +3,6 @@ define('APP_DEBUG', true);
 if (APP_DEBUG) { ini_set('display_errors', 1); error_reporting(E_ALL); }
 
 require_once("../../includes/verificar_rol.php");
-session_start();
 verificarRol([1,5]); // sólo admin/supervisor
 require_once("../../includes/conexion.php");
 
