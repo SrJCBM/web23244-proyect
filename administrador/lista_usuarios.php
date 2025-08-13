@@ -13,11 +13,10 @@ error_reporting(E_ALL);
  * Helper de navegación después de acciones
  * -------------------------------------- */
 function go($msg = '') {
-  // Nota: conservamos tu redirección al index general.
-  // Si prefieres volver directo a esta lista, puedes cambiar a:
-  // header("Location: lista_usuarios.php" . ($msg ? "?msg=" . urlencode($msg) : ""));
-  $url = "../index.php"; // Ruta al index
-  if ($msg !== '') $url .= '?msg=' . urlencode($msg);
+  // Si prefieres volver directo a esta lista:
+  // $url = "lista_usuarios.php";
+  $url = "../index.php";
+  if ($msg !== '') $url .= (strpos($url,'?')!==false ? '&' : '?') . 'msg=' . urlencode($msg);
   header("Location: $url");
   exit;
 }
@@ -58,9 +57,7 @@ if (isset($_GET['toggle_estado'])) {
   $ok = $u->fetch();
   $u->close();
 
-  if (!$ok) {
-    go('notfound');
-  }
+  if (!$ok) { go('notfound'); }
 
   // Proteger al último admin activo
   if ((int)$u_rol === 1 && $u_estado === 'activo') {
@@ -74,16 +71,16 @@ if (isset($_GET['toggle_estado'])) {
   }
 
   // Toggle
-  $stmt = $conexion->prepare("
+  $stmtT = $conexion->prepare("
     UPDATE usuarios
        SET estado = IF(estado='activo','inactivo','activo')
      WHERE id_usuario = ?
      LIMIT 1
   ");
-  if (!$stmt) { error_log('prepare upd: '.$conexion->error); go('err'); }
-  $stmt->bind_param("i", $id);
-  if (!$stmt->execute()) { error_log('exec upd: '.$stmt->error); go('err'); }
-  $stmt->close();
+  if (!$stmtT) { error_log('prepare upd: '.$conexion->error); go('err'); }
+  $stmtT->bind_param("i", $id);
+  if (!$stmtT->execute()) { error_log('exec upd: '.$stmtT->error); go('err'); }
+  $stmtT->close();
 
   go('ok');
 }
@@ -159,8 +156,11 @@ if (!empty($_GET['msg'])) {
     'ok'           => 'Estado actualizado.',
     'yo_mismo'     => 'No puedes cambiar tu propio estado.',
     'notfound'     => 'Usuario no encontrado.',
-    'ultimo_admin' => 'No puedes desactivar al último administrador activo.',
+    'ultimo_admin' => 'No puedes desactivar/eliminar al último administrador activo.',
     'err'          => 'Ocurrió un error. Revisa el log del servidor.',
+    'upd_ok'       => 'Usuario actualizado correctamente.',
+    'del_ok'       => 'Usuario eliminado correctamente.',
+    'no_delete_self' => 'No puedes eliminar tu propia cuenta.',
   ];
   if (isset($msgs[$_GET['msg']])) {
     echo '<p style="color:#0f766e;margin:8px 0;">'.htmlspecialchars($msgs[$_GET['msg']]).'</p>';
@@ -168,7 +168,7 @@ if (!empty($_GET['msg'])) {
 }
 ?>
 
-<h2>Lista de Usuarios</h2>
+<h2>👥 Lista de Usuarios</h2>
 
 <?php renderPaginationUsuarios($page, $totalPages); ?>
 
@@ -179,6 +179,7 @@ if (!empty($_GET['msg'])) {
     <th>Rol</th>
     <th>Estado</th>
     <th>Activar/Inactivar</th>
+    <th>Acciones</th>
   </tr>
 
   <?php if ($resultado && $resultado->num_rows > 0): ?>
@@ -198,10 +199,24 @@ if (!empty($_GET['msg'])) {
             —
           <?php endif; ?>
         </td>
+        <td>
+          <a href="#"
+             title="Editar"
+             onclick="cargarDirecto('administrador/editar_usuario.php?id=<?= (int)$row['id_usuario'] ?>&page=<?= $page ?>'); return false;">✏️</a>
+          &nbsp;
+          <?php if ((int)$_SESSION['id_usuario'] !== (int)$row['id_usuario']): ?>
+            <a href="#"
+               title="Eliminar"
+               onclick="if(!confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) return false;
+                        cargarDirecto('administrador/eliminar_usuario.php?id=<?= (int)$row['id_usuario'] ?>&page=<?= $page ?>'); return false;">🗑️</a>
+          <?php else: ?>
+            —
+          <?php endif; ?>
+        </td>
       </tr>
     <?php endwhile; ?>
   <?php else: ?>
-    <tr><td colspan="5" style="text-align:center;">No hay usuarios en esta página.</td></tr>
+    <tr><td colspan="6" style="text-align:center;">No hay usuarios en esta página.</td></tr>
   <?php endif; ?>
 </table>
 
