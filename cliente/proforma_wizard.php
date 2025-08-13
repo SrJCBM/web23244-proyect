@@ -81,7 +81,7 @@ require_once("../includes/conexion.php");
         </div>
         <div id="cliNuevo" style="display:none">
           <h4>Registrar nuevo</h4>
-          <label>Nombre comercial<br><input id="cliNombre"></label><br>
+          <label>Nombre<br><input id="cliNombre"></label><br>
           <label>Correo<br><input id="cliCorreo"></label><br>
           <label>Teléfono<br><input id="cliTelefono"></label><br>
           <label>Dirección<br><input id="cliDireccion"></label><br><br>
@@ -141,9 +141,7 @@ require_once("../includes/conexion.php");
       </div>
       <div style="margin-top:10px">
         <button class="btn btn-light" type="button" onclick="prevPaso(3)">Atrás</button>
-		<button class="btn btn-primary" type="button" onclick="guardarProformaUI('borrador')">Guardar borrador</button>
-		<button class="btn btn-primary" type="button" onclick="guardarProformaUI('emitida')">Emitir + PDF</button>
-		<button class="btn btn-primary" type="button" onclick="guardarProformaUI('enviada', true)">Emitir + Enviar</button>
+		<button class="btn btn-primary" type="button" onclick="guardarProformaUI('emitida')">Guardar</button>
       </div>
     </div>
   </div>

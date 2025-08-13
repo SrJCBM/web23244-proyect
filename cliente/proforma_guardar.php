@@ -2,50 +2,57 @@
 require_once("../includes/verificar_rol.php");
 verificarRol([1,2,5,6]);
 require_once("../includes/conexion.php");
+
 header("Content-Type: application/json; charset=utf-8");
 
-// Lee JSON
-$raw = file_get_contents("php://input");
-$in = json_decode($raw, true);
-
-if (!$in) { echo json_encode(["ok"=>false,"msg"=>"JSON inválido"]); exit; }
-
-$id_usuario   = $_SESSION["id_usuario"] ?? 0;
-$id_cliente   = (int)($in["id_cliente"] ?? 0);
-$id_categoria = (int)($in["id_categoria"] ?? 0);
-$estado       = trim($in["estado"] ?? "borrador");
-$moneda       = substr(trim($in["moneda"] ?? "USD"),0,3);
-$notas        = trim($in["notas"] ?? "");
-$impuesto_pct = (float)($in["impuesto_pct"] ?? 0);
-$opcs         = $in["opciones"] ?? [];
-
-if ($id_usuario<=0) { echo json_encode(["ok"=>false,"msg"=>"Sesión inválida"]); exit; }
-if ($id_cliente<=0 || $id_categoria<=0) { echo json_encode(["ok"=>false,"msg"=>"Datos incompletos: cliente/categoría"]); exit; }
-if (!is_array($opcs) || count($opcs)==0) { echo json_encode(["ok"=>false,"msg"=>"Datos incompletos: productos"]); exit; }
-if (count($opcs) < 2 || count($opcs) > 4) { echo json_encode(["ok"=>false,"msg"=>"Debes comparar entre 2 y 4 productos"]); exit; }
+// === Utilidad para explotar en errores de mysqli ===
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 try {
+  // ---- 1) Entrada ----
+  $raw = file_get_contents("php://input");
+  $in = json_decode($raw, true);
+  if (!$in) throw new Exception("JSON inválido");
+
+  $id_usuario   = (int)($_SESSION["id_usuario"] ?? 0);
+  $id_cliente   = (int)($in["id_cliente"] ?? 0);
+  $id_categoria = (int)($in["id_categoria"] ?? 0);
+  $estado       = substr(trim($in["estado"] ?? "borrador"),0,20);
+  $moneda       = substr(trim($in["moneda"] ?? "USD"),0,3);
+  $notas        = trim($in["notas"] ?? "");
+  $impuesto_pct = (float)($in["impuesto_pct"] ?? 0);
+  $opcs         = $in["opciones"] ?? [];
+
+  if ($id_usuario <= 0)                  throw new Exception("Sesión inválida");
+  if ($id_cliente <= 0 || $id_categoria <= 0) throw new Exception("Datos incompletos: cliente/categoría");
+  if (!is_array($opcs) || count($opcs)==0)    throw new Exception("Datos incompletos: productos");
+  if (count($opcs) < 2 || count($opcs) > 4)   throw new Exception("Debes comparar entre 2 y 4 productos");
+
+  // ---- 2) Transacción ----
   $conexion->begin_transaction();
 
-  $subtotal = 0.0;
-  $lineas = [];
+  // Preparar consulta de producto (precio)
+  $stmtP = $conexion->prepare("
+    SELECT id_producto, precio_base
+    FROM productos
+    WHERE id_producto=? AND id_categoria=?
+    LIMIT 1
+  ");
 
-  // Trae info de cada producto y recalcula precios con items
-  $stmtP = $conexion->prepare("SELECT id_producto, precio_base FROM productos WHERE id_producto=? AND id_categoria=? LIMIT 1");
+  $subtotal = 0.0;
+  $lineas   = [];
 
   foreach ($opcs as $p) {
-    $id_producto    = (int)($p["id_producto"] ?? 0);
-    $cantidad       = max(1, (int)($p["cantidad"] ?? 1));
-    $precio_unit_ui = (float)($p["precio_unitario"] ?? 0.0);
-    $items          = is_array($p["items"] ?? null) ? $p["items"] : [];
+    $id_producto = (int)($p["id_producto"] ?? 0);
+    $cantidad    = max(1, (int)($p["cantidad"] ?? 1));
+    $items       = is_array($p["items"] ?? null) ? $p["items"] : [];
+    if ($id_producto <= 0) throw new Exception("Producto inválido");
 
-    if ($id_producto<=0) { throw new Exception("Producto inválido"); }
-
-    // Precio base real desde BD (por seguridad)
+    // Precio real desde BD (no confíes en el UI)
     $stmtP->bind_param("ii", $id_producto, $id_categoria);
     $stmtP->execute();
     $resP = $stmtP->get_result();
-    if (!$resP || $resP->num_rows==0) { throw new Exception("Producto no pertenece a la categoría"); }
+    if ($resP->num_rows === 0) throw new Exception("El producto $id_producto no pertenece a la categoría seleccionada");
     $rowP = $resP->fetch_assoc();
     $precio_unit = (float)$rowP["precio_base"];
 
@@ -53,14 +60,15 @@ try {
     $extras_fijo = 0.0;
     $extras_pct  = 0.0;
     foreach ($items as $it) {
-      $modo   = $it["modo_precio"] ?? "fijo";
+      $modo   = ($it["modo_precio"] ?? "fijo") === "porcentaje" ? "porcentaje" : "fijo";
       $valor  = (float)($it["valor_precio"] ?? 0);
       $cantIt = max(1, (int)($it["cantidad"] ?? 1));
       if ($modo === "fijo") $extras_fijo += $valor * $cantIt;
       else                  $extras_pct  += $valor; // % acumulado
     }
+
     $base      = $precio_unit * $cantidad;
-    $extras    = $extras_fijo + ($base * ($extras_pct/100));
+    $extras    = $extras_fijo + ($base * ($extras_pct/100.0));
     $line_total= $base + $extras;
     $subtotal += $line_total;
 
@@ -75,25 +83,44 @@ try {
   }
   $stmtP->close();
 
-  $impuesto = $subtotal * ($impuesto_pct/100.0);
-  $total    = $subtotal + $impuesto;
+  $impuestos = $subtotal * ($impuesto_pct/100.0);
+  $total     = $subtotal + $impuestos;
 
-  // Inserta cabecera
+  // ---- 3) Inserta cabecera (ahora con todas las columnas) ----
   $stmt = $conexion->prepare("
-    INSERT INTO cotizaciones (id_usuario, id_cliente, total, estado, fecha_emision, created_at, updated_at)
-    VALUES (?, ?, ?, ?, NOW(), NOW(), NOW())
-  ");
-  $stmt->bind_param("iids", $id_usuario, $id_cliente, $total, $estado);
+  INSERT INTO cotizaciones
+    (id_usuario, id_cliente, id_categoria, total, subtotal, impuestos, estado, fecha_emision, moneda, notas, created_at, updated_at)
+  VALUES
+    (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, NOW(), NOW())
+");
+
+# Tipos: i i i d d d s s s  →  "iiidddsss"
+$stmt->bind_param(
+  "iiidddsss",
+  $id_usuario,
+  $id_cliente,
+  $id_categoria,
+  $total,
+  $subtotal,
+  $impuestos,
+  $estado,
+  $moneda,
+  $notas
+);
+
+  // ojo: espacios en ii d d d s s s son para legibilidad, PHP los ignora.
   $stmt->execute();
   $id_cotizacion = $stmt->insert_id;
   $stmt->close();
 
-  // Inserta detalle
+  // ---- 4) Inserta detalle con verificación de errores ----
   $stmtD = $conexion->prepare("
     INSERT INTO detalle_cotizacion
-    (id_cotizacion, id_producto, cantidad, precio_unitario, extras_json, extras_total, subtotal)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+      (id_cotizacion, id_producto, cantidad, precio_unitario, extras_json, extras_total, subtotal)
+    VALUES
+      (?, ?, ?, ?, ?, ?, ?)
   ");
+
   foreach ($lineas as $l) {
     $stmtD->bind_param(
       "iiidsdd",
@@ -112,14 +139,21 @@ try {
   $conexion->commit();
 
   echo json_encode([
-    "ok"=>true,
-    "id_cotizacion"=>$id_cotizacion,
-    "subtotal"=>$subtotal,
-    "impuesto"=>$impuesto,
-    "total"=>$total
+    "ok"           => true,
+    "id_cotizacion"=> $id_cotizacion,
+    "subtotal"     => round($subtotal,2),
+    "impuestos"    => round($impuestos,2),
+    "total"        => round($total,2)
   ]);
 } catch (Throwable $e) {
-  $conexion->rollback();
+  if ($conexion && $conexion->errno === 0) {
+    // si no hay transacción abierta, no hay rollback que hacer
+    try { $conexion->rollback(); } catch (Throwable $e2) {}
+  }
   http_response_code(500);
-  echo json_encode(["ok"=>false,"msg"=>"Error guardando proforma","error"=>$e->getMessage()]);
+  echo json_encode([
+    "ok"   => false,
+    "msg"  => "Error guardando proforma",
+    "error"=> $e->getMessage()
+  ]);
 }

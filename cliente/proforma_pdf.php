@@ -15,17 +15,23 @@ $stmt = $conexion->prepare("SELECT p.*, c.nombre_comercial, c.correo, c.telefono
   WHERE p.id_cotizacion=?");
 $stmt->bind_param("i",$id); $stmt->execute();
 $pro = $stmt->get_result()->fetch_assoc();
-if(!$pro){ exit('No existe proforma'); }
+$stmt->close();
+if(!$pro){ http_response_code(404); exit('No existe proforma'); }
 
 // Detalle
-$det = $conexion->query("SELECT d.*, pr.nombre, pr.marca, pr.modelo FROM detalle_cotizacion d
-  JOIN productos pr ON pr.id_producto=d.id_producto
-  WHERE d.id_cotizacion=".$id." ORDER BY pr.marca, pr.modelo")->fetch_all(MYSQLI_ASSOC);
+$stmt = $conexion->prepare("SELECT d.*, pr.nombre, pr.marca, pr.modelo
+                            FROM detalle_cotizacion d
+                            JOIN productos pr ON pr.id_producto=d.id_producto
+                            WHERE d.id_cotizacion=? ORDER BY pr.marca, pr.modelo");
+$stmt->bind_param("i",$id);
+$stmt->execute();
+$det = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
 
 // HTML
 ob_start(); ?>
 <html><head><meta charset="utf-8"><style>
-body{font-family:Arial;font-size:12px}
+body{font-family:Arial, Helvetica, sans-serif; font-size:12px}
 h2{margin:0 0 8px}
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{border:1px solid #ccc;padding:6px;text-align:left;vertical-align:top}
@@ -89,15 +95,21 @@ $dompdf->loadHtml($html,'UTF-8');
 $dompdf->setPaper('A4','portrait');
 $dompdf->render();
 
+// (opcional) guardar archivo en disco y path en BD
 $path = __DIR__."/../storage/proformas";
 if(!is_dir($path)) mkdir($path,0777,true);
 $file = $path."/PRO-".$id.".pdf";
-file_put_contents($file, $dompdf->output());
+$pdf  = $dompdf->output();
+file_put_contents($file, $pdf);
 
-// guarda ruta
 $st = $conexion->prepare("UPDATE cotizaciones SET pdf_path=? WHERE id_cotizacion=?");
 $st->bind_param("si",$file,$id); $st->execute();
+$st->close();
 
+// Enviar al navegador como PDF (no HTML)
+if (ob_get_length()) { ob_end_clean(); }
 header('Content-Type: application/pdf');
 header('Content-Disposition: inline; filename="PRO-'.$id.'.pdf"');
-echo $dompdf->output();
+header('Content-Length: '.strlen($pdf));
+echo $pdf;
+exit;

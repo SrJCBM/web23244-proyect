@@ -71,15 +71,24 @@ function cargarDirecto(ruta) {
     })
     .then(html => {
       const cont = document.getElementById("contenido");
-      cont.innerHTML = html;
 
-      // --- Inicializadores por presencia en el DOM ---
-      // Proforma Wizard: si existe .wiz o #selCategoria, inicializa
-      const isWizard = !!(cont.querySelector('.wiz') || cont.querySelector('#selCategoria'));
-      if (isWizard && typeof window.initProformaWizard === 'function') {
-        setTimeout(() => window.initProformaWizard(), 0);
+      // --- RESET si vamos a cargar el wizard ---
+      const isWizardRoute = /proforma_wizard\.php$/i.test(ruta);
+      if (isWizardRoute) {
+        // resetea el estado global del wizard
+        window.__PF_WIZARD_INITED = false;
+        window.proforma = { id_cliente: null, id_categoria: null, productos: [] };
       }
 
+      cont.innerHTML = html;
+
+      // Detecta wizard por DOM también (por si no vino con esa ruta)
+      const isWizardDom = !!(cont.querySelector('.wiz') || cont.querySelector('#selCategoria'));
+      if ((isWizardRoute || isWizardDom) && typeof window.initProformaWizard === 'function') {
+        // protege: si otro reset era necesario
+        window.__PF_WIZARD_INITED = false;
+        setTimeout(() => window.initProformaWizard(), 0);
+      }
     })
     .catch(err => {
       console.error("Error al cargar:", err);

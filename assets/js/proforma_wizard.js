@@ -382,11 +382,11 @@ window.guardarProformaUI = async function (estado, enviar = false) {
   };
 
   try {
-    const r = await window.postJSON("cliente/proforma_guardar.php", payload);
-    if (!r || !r.ok) {
-      alert((r && r.msg) || "No se pudo guardar");
-      return;
-    }
+    const r = await postJSON('cliente/proforma_guardar.php', payload);
+if (!r || !r.ok) {
+  alert((r && (r.msg + (r.error ? ('\n' + r.error) : ''))) || 'Error al guardar');
+  return;
+}
 
     if (estado === "emitida" || enviar) {
       await fetch("cliente/proforma_pdf.php?id=" + r.id_cotizacion, {
@@ -422,6 +422,7 @@ window.guardarProformaUI = async function (estado, enviar = false) {
 window.__PF_WIZARD_INITED = false;
 
 window.initProformaWizard = async function () {
+	window.proforma = window.proforma || { id_cliente:null, id_categoria:null, productos:[] };
   if (window.__PF_WIZARD_INITED) return; // evita múltiples inits
   window.__PF_WIZARD_INITED = true;
 

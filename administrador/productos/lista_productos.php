@@ -1,130 +1,175 @@
 <?php
+// administrador/productos/lista_productos.php
+define('APP_DEBUG', true);
+if (APP_DEBUG) { ini_set('display_errors', 1); error_reporting(E_ALL); }
+
 require_once("../../includes/verificar_rol.php");
-verificarRol([1,2,5,6]); // admin
+
+// PERMITIMOS VER a admin(1), vendedor(2), supervisor(5), analista(6)
+verificarRol([1,2,5,6]);
 require_once("../../includes/conexion.php");
 
-/** Parámetros de paginación */
-$perPage = 5;
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+// Rol del usuario para ocultar/mostrar acciones
+$ROL = (int)($_SESSION['id_rol'] ?? 0);
+$ES_ADMIN = in_array($ROL, [1,5]);      // admin o supervisor -> CRUD
+$SOLO_LECTURA = !$ES_ADMIN;             // vendedor(2), analista(6)
 
-/** Total de productos */
-$total = 0;
-$resCount = $conexion->query("SELECT COUNT(*) AS total FROM productos");
-if ($resCount && $row = $resCount->fetch_assoc()) {
-  $total = (int)$row['total'];
+// --------- Filtros y paginación -----------
+$q        = trim($_GET['q'] ?? '');
+$id_cat   = (int)($_GET['categoria'] ?? 0);
+$id_emp   = (int)($_GET['empresa'] ?? 0);
+
+$perPage  = 10;
+$page     = max(1, (int)($_GET['page'] ?? 1));
+$offset   = ($page - 1) * $perPage;
+
+$where = ["1=1"];
+$args  = [];
+$types = "";
+
+// Filtro de texto
+if ($q !== '') {
+  $where[] = "(p.nombre LIKE CONCAT('%',?,'%')
+               OR p.marca LIKE CONCAT('%',?,'%')
+               OR p.modelo LIKE CONCAT('%',?,'%'))";
+  array_push($args, $q, $q, $q);
+  $types .= "sss";
 }
+// Filtro categoría
+if ($id_cat > 0) {
+  $where[] = "p.id_categoria = ?";
+  $args[]  = $id_cat;  $types .= "i";
+}
+// Filtro empresa
+if ($id_emp > 0) {
+  $where[] = "p.id_empresa = ?";
+  $args[]  = $id_emp;  $types .= "i";
+}
+
+$whereSql = implode(" AND ", $where);
+
+// --------- Listas para selects -----------
+$cats = $conexion->query("SELECT id_categoria, nombre FROM categorias ORDER BY nombre ASC")->fetch_all(MYSQLI_ASSOC);
+$emps = $conexion->query("SELECT id_empresa, nombre FROM empresas_proveedoras ORDER BY nombre ASC")->fetch_all(MYSQLI_ASSOC);
+
+// --------- Total -----------
+$sqlCount = "SELECT COUNT(*) n FROM productos p WHERE $whereSql";
+$stmt = $conexion->prepare($sqlCount);
+if ($types) $stmt->bind_param($types, ...$args);
+$stmt->execute();
+$total = (int)$stmt->get_result()->fetch_assoc()['n'];
+$stmt->close();
+
 $totalPages = max(1, (int)ceil($total / $perPage));
-if ($page > $totalPages) $page = $totalPages;
-$offset = ($page - 1) * $perPage;
 
-/** Mapa de empresas (nombre por id) */
-$empresaMap = [];
-$q = $conexion->query("SELECT id_empresa, nombre FROM empresas_proveedoras ORDER BY nombre ASC");
-if ($q instanceof mysqli_result) {
-  while ($r = $q->fetch_assoc()) $empresaMap[(int)$r['id_empresa']] = $r['nombre'];
-} else {
-  $q2 = $conexion->query("SELECT id_empresa, COALESCE(nombre, nombre_empresa, razon_social) AS nombre FROM empresas ORDER BY nombre ASC");
-  if ($q2 instanceof mysqli_result) {
-    while ($r = $q2->fetch_assoc()) $empresaMap[(int)$r['id_empresa']] = $r['nombre'];
-  }
-}
-
-/** Página de productos */
-$stmt = $conexion->prepare("
-  SELECT id_producto, id_empresa, nombre, marca, modelo, precio_base, stock
-  FROM productos
-  ORDER BY id_producto ASC
+// --------- Página -----------
+$sql = "
+  SELECT p.id_producto, p.nombre, p.marca, p.modelo, p.precio_base, p.stock,
+         p.id_categoria, p.id_empresa,
+         c.nombre AS categoria, e.nombre AS empresa
+  FROM productos p
+  LEFT JOIN categorias c ON c.id_categoria=p.id_categoria
+  LEFT JOIN empresas_proveedoras e ON e.id_empresa=p.id_empresa
+  WHERE $whereSql
+  ORDER BY p.id_producto DESC
   LIMIT ? OFFSET ?
-");
-$stmt->bind_param("ii", $perPage, $offset);
+";
+$args2  = $args;  $types2 = $types . "ii";
+array_push($args2, $perPage, $offset);
+
+$stmt = $conexion->prepare($sql);
+$stmt->bind_param($types2, ...$args2);
 $stmt->execute();
 $rs = $stmt->get_result();
-
-/** Helper para dibujar la paginación */
-function renderPagination($page, $totalPages) {
-  if ($totalPages <= 1) return;
-  echo '<div style="margin:12px 0; display:flex; gap:8px; align-items:center;">';
-
-  $prev = max(1, $page - 1);
-  $next = min($totalPages, $page + 1);
-
-  echo '<button onclick="cargarDirecto(\'administrador/productos/lista_productos.php?page='.$prev.'\')">&laquo; Anterior</button>';
-
-  // Si hay pocas páginas, muéstralas todas; si no, muestra ventana alrededor
-  $start = max(1, $page - 2);
-  $end   = min($totalPages, $page + 2);
-  if ($start > 1) {
-    echo '<button onclick="cargarDirecto(\'administrador/productos/lista_productos.php?page=1\')">1</button>';
-    if ($start > 2) echo '<span>…</span>';
-  }
-  for ($i = $start; $i <= $end; $i++) {
-    if ($i == $page) {
-      echo '<button disabled style="font-weight:bold;">'.$i.'</button>';
-    } else {
-      echo '<button onclick="cargarDirecto(\'administrador/productos/lista_productos.php?page='.$i.'\')">'.$i.'</button>';
-    }
-  }
-  if ($end < $totalPages) {
-    if ($end < $totalPages - 1) echo '<span>…</span>';
-    echo '<button onclick="cargarDirecto(\'administrador/productos/lista_productos.php?page='.$totalPages.'\')">'.$totalPages.'</button>';
-  }
-
-  echo '<button onclick="cargarDirecto(\'administrador/productos/lista_productos.php?page='.$next.'\')">Siguiente &raquo;</button>';
-  echo '</div>';
-}
 ?>
-<h2>📦 Productos (Admin)</h2>
+<h2>Productos</h2>
 
-<div style="margin-bottom:12px;">
-  <a href="#" onclick="cargarDirecto('administrador/productos/crear_producto.php')">➕ Crear producto</a>
-</div>
+<!-- Filtros -->
+<form onsubmit="cargarDirecto('administrador/productos/lista_productos.php?'+new URLSearchParams(new FormData(this)).toString()); return false;"
+      style="margin:10px 0; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+  <input type="text" name="q" value="<?= htmlspecialchars($q) ?>" placeholder="Buscar por nombre, marca o modelo" style="padding:6px; width:260px;">
+  <select name="categoria" style="padding:6px;">
+    <option value="0">-- Todas las categorías --</option>
+    <?php foreach ($cats as $c): ?>
+      <option value="<?= (int)$c['id_categoria'] ?>" <?= $id_cat===$c['id_categoria']?'selected':'' ?>>
+        <?= htmlspecialchars($c['nombre']) ?>
+      </option>
+    <?php endforeach; ?>
+  </select>
+  <select name="empresa" style="padding:6px;">
+    <option value="0">-- Todas las empresas --</option>
+    <?php foreach ($emps as $e): ?>
+      <option value="<?= (int)$e['id_empresa'] ?>" <?= $id_emp===$e['id_empresa']?'selected':'' ?>>
+        <?= htmlspecialchars($e['nombre']) ?>
+      </option>
+    <?php endforeach; ?>
+  </select>
+  <button class="btn btn-primary" type="submit">Filtrar</button>
+</form>
 
-<?php renderPagination($page, $totalPages); ?>
+<?php if ($ES_ADMIN): ?>
+  <div style="margin-bottom:12px;">
+    <a href="#" onclick="cargarDirecto('administrador/productos/crear_producto.php')">➕ Crear producto</a>
+  </div>
+<?php endif; ?>
 
 <table border="1" cellspacing="0" cellpadding="6" style="width:100%; border-collapse:collapse;">
   <thead>
     <tr>
       <th>ID</th>
       <th>Empresa</th>
+      <th>Categoría</th>
       <th>Nombre</th>
       <th>Marca</th>
       <th>Modelo</th>
       <th>Precio</th>
       <th>Stock</th>
-      <th>Acciones</th>
+      <?php if ($ES_ADMIN): ?><th>Acciones</th><?php endif; ?>
     </tr>
   </thead>
   <tbody>
-    <?php if ($rs && $rs->num_rows > 0): ?>
-      <?php while($p = $rs->fetch_assoc()): ?>
-        <tr>
-          <td><?= (int)$p['id_producto'] ?></td>
-          <td><?= htmlspecialchars($empresaMap[(int)$p['id_empresa']] ?? ('Empresa #'.(int)$p['id_empresa'])) ?></td>
-          <td><?= htmlspecialchars($p['nombre']) ?></td>
-          <td><?= htmlspecialchars($p['marca']) ?></td>
-          <td><?= htmlspecialchars($p['modelo']) ?></td>
-          <td><?= number_format((float)$p['precio_base'], 2) ?></td>
-          <td><?= (int)$p['stock'] ?></td>
-          <td>
-            <a href="#"
-               title="Editar"
-               onclick="cargarDirecto('administrador/productos/editar_producto.php?id=<?= (int)$p['id_producto'] ?>&page=<?= $page ?>'); return false;">✏️</a>
-            &nbsp;
-            <a href="#"
-               title="Eliminar"
-               onclick="if(!confirm('¿Eliminar este producto? Esta acción no se puede deshacer.')) return false;
-                        cargarDirecto('administrador/productos/eliminar_producto.php?id=<?= (int)$p['id_producto'] ?>&page=<?= $page ?>'); return false;">🗑️</a>
-          </td>
-        </tr>
-      <?php endwhile; ?>
+    <?php if ($rs->num_rows === 0): ?>
+      <tr><td colspan="<?= $ES_ADMIN?9:8 ?>" style="text-align:center;color:#666">Sin resultados.</td></tr>
     <?php else: ?>
-      <tr><td colspan="8" style="text-align:center;">Sin productos en esta página.</td></tr>
+      <?php while($p=$rs->fetch_assoc()): ?>
+      <tr>
+        <td><?= (int)$p['id_producto'] ?></td>
+        <td><?= htmlspecialchars($p['empresa'] ?? '–') ?></td>
+        <td><?= htmlspecialchars($p['categoria'] ?? '–') ?></td>
+        <td><?= htmlspecialchars($p['nombre']) ?></td>
+        <td><?= htmlspecialchars($p['marca']) ?></td>
+        <td><?= htmlspecialchars($p['modelo']) ?></td>
+        <td>$<?= number_format((float)$p['precio_base'],2) ?></td>
+        <td><?= (int)$p['stock'] ?></td>
+        <?php if ($ES_ADMIN): ?>
+        <td>
+          <a href="#" title="Editar"
+             onclick="cargarDirecto('administrador/productos/editar_producto.php?id=<?= (int)$p['id_producto'] ?>&page=<?= $page ?>');return false;">✏️</a>
+          &nbsp;
+          <a href="#" title="Eliminar"
+             onclick="if(!confirm('¿Eliminar este producto?'))return false;
+                      cargarDirecto('administrador/productos/eliminar_producto.php?id=<?= (int)$p['id_producto'] ?>&page=<?= $page ?>');return false;">🗑️</a>
+        </td>
+        <?php endif; ?>
+      </tr>
+      <?php endwhile; ?>
     <?php endif; ?>
   </tbody>
 </table>
 
-<?php renderPagination($page, $totalPages); ?>
+<!-- Paginación -->
+<?php if ($totalPages > 1): ?>
+  <div style="margin:12px 0; display:flex; gap:8px; align-items:center;">
+    <?php for($i=1;$i<=$totalPages;$i++): ?>
+      <?php if ($i === $page): ?>
+        <strong><?= $i ?></strong>
+      <?php else: ?>
+        <a href="#"
+           onclick="cargarDirecto('administrador/productos/lista_productos.php?<?= http_build_query(['q'=>$q,'categoria'=>$id_cat,'empresa'=>$id_emp,'page'=>$i]) ?>');return false;"><?= $i ?></a>
+      <?php endif; ?>
+    <?php endfor; ?>
+  </div>
+<?php endif;
 
-<?php
 $stmt->close();
 $conexion->close();
