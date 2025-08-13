@@ -24,9 +24,6 @@ Thumbs.db
 # Node (por si usas npm para JS/CSS)
 node_modules/
 
-# Composer (si llegaran a usarlo)
-vendor/
-
 # Sistema operativo
 __MACOSX/
 
