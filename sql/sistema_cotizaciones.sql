@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Aug 13, 2025 at 12:24 AM
+-- Generation Time: Aug 13, 2025 at 02:51 AM
 -- Server version: 8.0.42
 -- PHP Version: 7.3.10
 
@@ -19,10 +19,31 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
+-- --
 -- Database: `sistema_cotizaciones`
 --
 CREATE DATABASE IF NOT EXISTS `sistema_cotizaciones` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE `sistema_cotizaciones`;
+--
+
+DELIMITER $$
+--
+-- Functions
+--
+CREATE DEFINER=`root`@`localhost` FUNCTION `f_accion_estado` (`old_val` VARCHAR(20), `new_val` VARCHAR(20)) RETURNS VARCHAR(32) CHARSET utf8mb4 COLLATE utf8mb4_general_ci BEGIN
+  IF old_val IS NULL OR new_val IS NULL OR old_val = new_val THEN
+    RETURN 'editar';
+  END IF;
+  IF old_val='activo' AND new_val='inactivo' THEN
+    RETURN 'inactivar';
+  ELSEIF old_val='inactivo' AND new_val='activo' THEN
+    RETURN 'activar';
+  END IF;
+  RETURN 'cambiar_estado';
+END$$
+
+DELIMITER ;
+
 -- --------------------------------------------------------
 
 --
@@ -38,6 +59,16 @@ CREATE TABLE `auditoria` (
   `entidad_id` bigint DEFAULT NULL,
   `detalle` json DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `auditoria`
+--
+
+INSERT INTO `auditoria` (`id_audit`, `fecha`, `actor_id`, `accion`, `entidad`, `entidad_id`, `detalle`) VALUES
+(1, '2025-08-12 21:38:28', NULL, 'activar', 'cliente', 3, '{\"after\": {\"cedula\": \"3050039886\", \"correo\": \"aaa@hotmail.com\", \"estado\": \"activo\", \"telefono\": \"111\", \"nombre_comercial\": \"aaa\"}, \"before\": {\"cedula\": \"3050039886\", \"correo\": \"aaa@hotmail.com\", \"estado\": \"inactivo\", \"telefono\": \"111\", \"nombre_comercial\": \"aaa\"}}'),
+(2, '2025-08-12 21:42:21', NULL, 'crear', 'cliente', 4, '{\"cedula\": \"2\", \"correo\": \"aaa\", \"estado\": \"activo\", \"telefono\": \"111\", \"nombre_comercial\": \"bbb\"}'),
+(3, '2025-08-12 21:48:43', 2, 'crear', 'proforma', 5, '{\"total\": 1584.23, \"estado\": \"emitida\", \"id_cliente\": 3, \"id_usuario\": 2, \"id_categoria\": 2}'),
+(4, '2025-08-12 21:48:43', 2, 'editar', 'proforma', 5, '{\"after\": {\"total\": 1584.23, \"estado\": \"emitida\", \"subtotal\": 1377.59}, \"before\": {\"total\": 1584.23, \"estado\": \"emitida\", \"subtotal\": 1377.59}}');
 
 -- --------------------------------------------------------
 
@@ -77,7 +108,21 @@ INSERT INTO `aud_accesos` (`id_acceso`, `id_usuario`, `username_intentado`, `ip`
 (12, 2, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 19:09:37', '2025-08-12 19:14:15', 1, 'logout', '2sfpcmg1g81cbtg91rpp2v29nd'),
 (13, 2, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 19:11:41', NULL, 1, 'login', 'ht1482an2u331glsia8nl43dlo'),
 (14, 1, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 19:14:22', '2025-08-12 19:22:17', 1, 'logout', 's9tdo7gfh6dt7cqh695v9elctc'),
-(15, 2, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 19:22:20', NULL, 1, 'login', '2a0fquppooe0lrpmppvlvonru1');
+(15, 2, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 19:22:20', '2025-08-12 19:34:16', 1, 'logout', '2a0fquppooe0lrpmppvlvonru1'),
+(16, 1, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 19:34:21', '2025-08-12 19:59:57', 1, 'logout', 'sds8dlbgasd6kjbh68cnc8t02u'),
+(17, 2, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 20:00:05', '2025-08-12 20:04:51', 1, 'logout', 'ape0e0gl0u9gvh7q322j00s2j2'),
+(18, 1, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 20:04:56', '2025-08-12 20:05:01', 1, 'logout', 'trmuup29jogagi0u7pch0h5vrt'),
+(19, 1, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 20:05:17', '2025-08-12 20:21:57', 1, 'logout', 'b3uqfqdnjidu6uupk8hjbm78j1'),
+(20, 2, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 20:22:01', '2025-08-12 20:46:37', 1, 'logout', 't7eef3io3hbqi1ra7f5vuc516d'),
+(21, 1, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 20:46:47', '2025-08-12 20:47:56', 1, 'logout', 'ak85unt5qes0o9k1rfdhtapnr7'),
+(22, 2, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 20:48:19', '2025-08-12 21:06:16', 1, 'logout', 'nqiucgd7u57d58ps4g601t9f3u'),
+(23, 1, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 21:06:21', '2025-08-12 21:18:04', 1, 'logout', 'msa9olcn5pa5rjufunqtnac7k2'),
+(24, 2, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 21:18:08', '2025-08-12 21:18:51', 1, 'logout', '3jt1livjkeukuml9u8oa4hss1p'),
+(25, 7, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 21:18:59', '2025-08-12 21:20:57', 1, 'logout', '13lf8muiskcdabr9ek88ukr3qg'),
+(26, 8, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 21:21:02', '2025-08-12 21:22:46', 1, 'logout', 'g1j0glbqegnqg5qhm3sa550klv'),
+(27, 6, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 21:22:50', '2025-08-12 21:36:58', 1, 'logout', 'ultvhgl0g4n1aaafvi9dsgtkjo'),
+(28, 2, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 21:37:06', '2025-08-12 21:48:54', 1, 'logout', 'i3moajistsser5kmbcom1557rv'),
+(29, 6, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-12 21:49:00', NULL, 1, 'login', 'l1e2ca9bulut07v2ndml34v2mn');
 
 -- --------------------------------------------------------
 
@@ -107,6 +152,43 @@ INSERT INTO `categorias` (`id_categoria`, `nombre`, `slug`, `estado`, `created_a
 (6, 'Microondas', 'microondas', 'activa', '2025-08-12 22:25:01'),
 (7, 'Aires Acondicionados', 'aires-acondicionados', 'activa', '2025-08-12 22:25:01');
 
+--
+-- Triggers `categorias`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_categorias_ad` AFTER DELETE ON `categorias` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'eliminar', 'categoria', OLD.id_categoria,
+          JSON_OBJECT('nombre', OLD.nombre));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_categorias_ai` AFTER INSERT ON `categorias` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'crear', 'categoria', NEW.id_categoria,
+          JSON_OBJECT('nombre', NEW.nombre, 'estado', NEW.estado));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_categorias_au` AFTER UPDATE ON `categorias` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  DECLARE v_accion VARCHAR(32);
+  SET v_accion = f_accion_estado(OLD.estado, NEW.estado);
+
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, v_accion, 'categoria', NEW.id_categoria,
+          JSON_OBJECT(
+            'before', JSON_OBJECT('nombre', OLD.nombre, 'estado', OLD.estado),
+            'after',  JSON_OBJECT('nombre', NEW.nombre, 'estado', NEW.estado)
+          ));
+END
+$$
+DELIMITER ;
+
 -- --------------------------------------------------------
 
 --
@@ -117,12 +199,10 @@ CREATE TABLE `clientes` (
   `id_cliente` int NOT NULL,
   `nombre_comercial` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `cedula` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `persona_contacto` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `correo` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `telefono` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `direccion` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `categoria` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `estado` enum('activo','inactivo') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'activo',
+  `estado` enum('activo','inactivo') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'activo',
   `id_usuario` int DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -132,10 +212,57 @@ CREATE TABLE `clientes` (
 -- Dumping data for table `clientes`
 --
 
-INSERT INTO `clientes` (`id_cliente`, `nombre_comercial`, `cedula`, `persona_contacto`, `correo`, `telefono`, `direccion`, `categoria`, `estado`, `id_usuario`, `created_at`) VALUES
-(1, 'ElectroHome S.A.', '3050039887', 'Carlos Pérez', 'cliente1@gmail.com', '0988776655', 'Av. Naciones Unidas, Quito', 'distribuidor', 'activo', 4, '2025-08-04 17:32:14'),
-(2, 'Muebles Modernos', NULL, 'Andrea López', 'cliente2@gmail.com', '0999988877', 'Av. Shyris, Quito', 'retail', 'activo', 5, '2025-08-04 17:32:14'),
-(3, 'aaa', '3050039886', NULL, 'aaa', '111', 'aaa', NULL, 'activo', NULL, '2025-08-12 23:32:26');
+INSERT INTO `clientes` (`id_cliente`, `nombre_comercial`, `cedula`, `correo`, `telefono`, `direccion`, `estado`, `id_usuario`, `created_at`) VALUES
+(1, 'ElectroHome S.A.', '3050039887', 'cliente1@gmail.com', '0988776655', 'Av. Naciones Unidas, Quito', 'activo', 4, '2025-08-04 17:32:14'),
+(2, 'Muebles Modernos', NULL, 'cliente2@gmail.com', '0999988877', 'Av. Shyris, Quito', 'activo', 5, '2025-08-04 17:32:14'),
+(3, 'aaa', '3050039886', 'aaa@hotmail.com', '111', 'aaa', 'activo', NULL, '2025-08-12 23:32:26'),
+(4, 'bbb', '2', 'aaa', '111', 'eee', 'activo', NULL, '2025-08-13 02:42:21');
+
+--
+-- Triggers `clientes`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_clientes_ad` AFTER DELETE ON `clientes` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'eliminar', 'cliente', OLD.id_cliente,
+          JSON_OBJECT('nombre_comercial', OLD.nombre_comercial, 'cedula', OLD.cedula));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_clientes_ai` AFTER INSERT ON `clientes` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'crear', 'cliente', NEW.id_cliente,
+          JSON_OBJECT(
+            'nombre_comercial', NEW.nombre_comercial, 'cedula', NEW.cedula,
+            'correo', NEW.correo, 'telefono', NEW.telefono, 'estado', NEW.estado
+          ));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_clientes_au` AFTER UPDATE ON `clientes` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  DECLARE v_accion VARCHAR(32);
+  SET v_accion = f_accion_estado(OLD.estado, NEW.estado);
+
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, v_accion, 'cliente', NEW.id_cliente,
+          JSON_OBJECT(
+            'before', JSON_OBJECT(
+              'nombre_comercial', OLD.nombre_comercial, 'cedula', OLD.cedula,
+              'correo', OLD.correo, 'telefono', OLD.telefono, 'estado', OLD.estado
+            ),
+            'after', JSON_OBJECT(
+              'nombre_comercial', NEW.nombre_comercial, 'cedula', NEW.cedula,
+              'correo', NEW.correo, 'telefono', NEW.telefono, 'estado', NEW.estado
+            )
+          ));
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -168,7 +295,53 @@ INSERT INTO `cotizaciones` (`id_cotizacion`, `id_usuario`, `id_cliente`, `id_cat
 (1, 4, 1, NULL, '2025-08-04 00:00:00', '1169.99', NULL, NULL, NULL, NULL, NULL, 'activa', '2025-08-04 05:00:00'),
 (2, 5, 2, NULL, '2025-08-04 00:00:00', '140.00', NULL, NULL, NULL, NULL, NULL, 'activa', '2025-08-04 05:00:00'),
 (3, 2, 1, 2, '2025-08-12 18:31:09', '1637.59', '1423.99', '213.60', 'USD', '', 'C:\\AppServ\\www\\Proyecto web\\web23244-proyect\\cliente/../storage/proformas/PRO-3.pdf', 'borrador', '2025-08-12 23:31:09'),
-(4, 2, 3, 2, '2025-08-12 18:51:16', '3274.03', '2846.98', '427.05', 'USD', '', 'C:\\AppServ\\www\\Proyecto web\\web23244-proyect\\cliente/../storage/proformas/PRO-4.pdf', 'emitida', '2025-08-12 23:51:16');
+(4, 2, 3, 2, '2025-08-12 18:51:16', '3274.03', '2846.98', '427.05', 'USD', '', 'C:\\AppServ\\www\\Proyecto web\\web23244-proyect\\cliente/../storage/proformas/PRO-4.pdf', 'emitida', '2025-08-12 23:51:16'),
+(5, 2, 3, 2, '2025-08-12 21:48:43', '1584.23', '1377.59', '206.64', 'USD', '', 'C:\\AppServ\\www\\Proyecto web\\web23244-proyect\\cliente/../storage/proformas/PRO-5.pdf', 'emitida', '2025-08-13 02:48:43');
+
+--
+-- Triggers `cotizaciones`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_cotizaciones_ad` AFTER DELETE ON `cotizaciones` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT COALESCE(@actor_id, OLD.id_usuario);
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'eliminar', 'proforma', OLD.id_cotizacion,
+          JSON_OBJECT('id_usuario', OLD.id_usuario, 'total', OLD.total, 'estado', OLD.estado));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_cotizaciones_ai` AFTER INSERT ON `cotizaciones` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT COALESCE(@actor_id, NEW.id_usuario);
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'crear', 'proforma', NEW.id_cotizacion,
+          JSON_OBJECT(
+            'id_usuario', NEW.id_usuario,
+            'id_cliente', NEW.id_cliente,
+            'id_categoria', NEW.id_categoria,
+            'total', NEW.total,
+            'estado', NEW.estado
+          ));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_cotizaciones_au` AFTER UPDATE ON `cotizaciones` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT COALESCE(@actor_id, NEW.id_usuario);
+  DECLARE v_accion VARCHAR(32) DEFAULT 'editar';
+  IF (OLD.estado <> NEW.estado) THEN
+    SET v_accion = 'cambiar_estado';
+  END IF;
+
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, v_accion, 'proforma', NEW.id_cotizacion,
+          JSON_OBJECT(
+            'before', JSON_OBJECT('estado', OLD.estado, 'total', OLD.total, 'subtotal', OLD.subtotal),
+            'after',  JSON_OBJECT('estado', NEW.estado, 'total', NEW.total, 'subtotal', NEW.subtotal)
+          ));
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -196,7 +369,9 @@ INSERT INTO `detalle_cotizacion` (`id_detalle`, `id_cotizacion`, `id_producto`, 
 (7, 3, 8, 1, '559.99', '[{\"tipo\": \"componente\", \"nombre\": \"No Frost\", \"cantidad\": 1, \"id_opcion\": 3, \"modo_precio\": \"porcentaje\", \"valor_precio\": 5}]', '28.00', '587.99'),
 (8, 4, 7, 1, '1299.99', '[{\"tipo\": \"componente\", \"nombre\": \"No Frost\", \"cantidad\": 1, \"id_opcion\": 3, \"modo_precio\": \"porcentaje\", \"valor_precio\": 5}, {\"tipo\": \"componente\", \"nombre\": \"Iluminación LED interior\", \"cantidad\": 1, \"id_opcion\": 5, \"modo_precio\": \"fijo\", \"valor_precio\": 25}, {\"tipo\": \"accesorio\", \"nombre\": \"Filtro de agua premium\", \"cantidad\": 1, \"id_opcion\": 4, \"modo_precio\": \"fijo\", \"valor_precio\": 35}, {\"tipo\": \"accesorio\", \"nombre\": \"Garantía extendida 2 años\", \"cantidad\": 1, \"id_opcion\": 6, \"modo_precio\": \"porcentaje\", \"valor_precio\": 6}]', '203.00', '1502.99'),
 (9, 4, 8, 1, '559.99', '[{\"tipo\": \"componente\", \"nombre\": \"No Frost\", \"cantidad\": 1, \"id_opcion\": 3, \"modo_precio\": \"porcentaje\", \"valor_precio\": 5}]', '28.00', '587.99'),
-(10, 4, 2, 1, '720.00', '[{\"tipo\": \"componente\", \"nombre\": \"No Frost\", \"cantidad\": 1, \"id_opcion\": 3, \"modo_precio\": \"porcentaje\", \"valor_precio\": 5}]', '36.00', '756.00');
+(10, 4, 2, 1, '720.00', '[{\"tipo\": \"componente\", \"nombre\": \"No Frost\", \"cantidad\": 1, \"id_opcion\": 3, \"modo_precio\": \"porcentaje\", \"valor_precio\": 5}]', '36.00', '756.00'),
+(11, 5, 2, 1, '720.00', '[{\"tipo\": \"componente\", \"nombre\": \"No Frost\", \"cantidad\": 1, \"id_opcion\": 3, \"modo_precio\": \"porcentaje\", \"valor_precio\": 5}]', '36.00', '756.00'),
+(12, 5, 8, 1, '559.99', '[{\"tipo\": \"componente\", \"nombre\": \"No Frost\", \"cantidad\": 1, \"id_opcion\": 3, \"modo_precio\": \"porcentaje\", \"valor_precio\": 5}, {\"tipo\": \"accesorio\", \"nombre\": \"Garantía extendida 2 años\", \"cantidad\": 1, \"id_opcion\": 6, \"modo_precio\": \"porcentaje\", \"valor_precio\": 6}]', '61.60', '621.59');
 
 -- --------------------------------------------------------
 
@@ -224,7 +399,54 @@ CREATE TABLE `empresas_proveedoras` (
 INSERT INTO `empresas_proveedoras` (`id_empresa`, `nombre`, `ruc`, `direccion`, `correo_contacto`, `telefono`, `estado`, `created_at`, `id_usuario`) VALUES
 (1, 'ElectroQuito S.A.', '1790011223001', 'Av. Amazonas y Colón, Quito', 'ventas@electroquito.ec', '0998877665', 'activa', '2025-07-31 17:07:27', 2),
 (2, 'Tecnishop Andes', '1790055544002', 'Av. 6 de Diciembre y Orellana, Quito', 'info@hogartech.com', '0981122334', 'activa', '2025-08-04 17:32:14', 3),
-(3, 'MegaHome Latam', NULL, NULL, NULL, NULL, 'activa', '2025-08-12 22:24:49', NULL);
+(3, 'MegaHome Latam', NULL, NULL, NULL, NULL, 'activa', '2025-08-12 22:24:49', NULL),
+(4, 'aaa', '111', 'aaa', 'bcs@hotmail.com', '111', 'activa', '2025-08-13 02:12:56', 1);
+
+--
+-- Triggers `empresas_proveedoras`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_empresas_ad` AFTER DELETE ON `empresas_proveedoras` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'eliminar', 'empresa', OLD.id_empresa,
+          JSON_OBJECT('nombre', OLD.nombre, 'ruc', OLD.ruc));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_empresas_ai` AFTER INSERT ON `empresas_proveedoras` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'crear', 'empresa', NEW.id_empresa,
+          JSON_OBJECT(
+            'nombre', NEW.nombre, 'ruc', NEW.ruc, 'correo', NEW.correo_contacto,
+            'telefono', NEW.telefono, 'estado', NEW.estado
+          ));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_empresas_au` AFTER UPDATE ON `empresas_proveedoras` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  DECLARE v_accion VARCHAR(32);
+  SET v_accion = f_accion_estado(OLD.estado, NEW.estado);
+
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, v_accion, 'empresa', NEW.id_empresa,
+          JSON_OBJECT(
+            'before', JSON_OBJECT(
+              'nombre', OLD.nombre, 'ruc', OLD.ruc, 'correo', OLD.correo_contacto,
+              'telefono', OLD.telefono, 'estado', OLD.estado
+            ),
+            'after', JSON_OBJECT(
+              'nombre', NEW.nombre, 'ruc', NEW.ruc, 'correo', NEW.correo_contacto,
+              'telefono', NEW.telefono, 'estado', NEW.estado
+            )
+          ));
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -250,13 +472,61 @@ CREATE TABLE `opciones_categoria` (
 --
 
 INSERT INTO `opciones_categoria` (`id_opcion`, `id_categoria`, `nombre`, `tipo`, `modo_precio`, `valor_precio`, `obligatorio`, `visible`, `created_at`) VALUES
-(1, 2, 'Dispensador de agua', 'componente', 'fijo', '80.00', 0, 1, '2025-08-12 22:36:05'),
+(1, 2, 'Dispensador de agua', 'componente', 'fijo', '81.00', 0, 1, '2025-08-12 22:36:05'),
 (2, 2, 'Ice Maker automático', 'componente', 'fijo', '120.00', 0, 1, '2025-08-12 22:36:05'),
 (3, 2, 'No Frost', 'componente', 'porcentaje', '5.00', 1, 1, '2025-08-12 22:36:05'),
-(4, 2, 'Filtro de agua premium', 'accesorio', 'fijo', '35.00', 0, 1, '2025-08-12 22:36:05'),
 (5, 2, 'Iluminación LED interior', 'componente', 'fijo', '25.00', 0, 1, '2025-08-12 22:36:05'),
 (6, 2, 'Garantía extendida 2 años', 'accesorio', 'porcentaje', '6.00', 0, 1, '2025-08-12 22:36:05'),
-(7, 2, 'Instalación a domicilio', 'accesorio', 'fijo', '30.00', 0, 1, '2025-08-12 22:36:05');
+(7, 2, 'Instalación a domicilio', 'accesorio', 'fijo', '30.00', 0, 1, '2025-08-12 22:36:05'),
+(8, 7, 'aaaa', 'componente', 'fijo', '11.00', 0, 1, '2025-08-13 02:13:59');
+
+--
+-- Triggers `opciones_categoria`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_opciones_ad` AFTER DELETE ON `opciones_categoria` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'eliminar', 'opcion', OLD.id_opcion,
+          JSON_OBJECT(
+            'id_categoria', OLD.id_categoria, 'nombre', OLD.nombre, 'tipo', OLD.tipo
+          ));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_opciones_ai` AFTER INSERT ON `opciones_categoria` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'crear', 'opcion', NEW.id_opcion,
+          JSON_OBJECT(
+            'id_categoria', NEW.id_categoria, 'nombre', NEW.nombre, 'tipo', NEW.tipo,
+            'modo_precio', NEW.modo_precio, 'valor_precio', NEW.valor_precio,
+            'obligatorio', NEW.obligatorio, 'visible', NEW.visible
+          ));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_opciones_au` AFTER UPDATE ON `opciones_categoria` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'editar', 'opcion', NEW.id_opcion,
+          JSON_OBJECT(
+            'before', JSON_OBJECT(
+              'id_categoria', OLD.id_categoria, 'nombre', OLD.nombre, 'tipo', OLD.tipo,
+              'modo_precio', OLD.modo_precio, 'valor_precio', OLD.valor_precio,
+              'obligatorio', OLD.obligatorio, 'visible', OLD.visible
+            ),
+            'after', JSON_OBJECT(
+              'id_categoria', NEW.id_categoria, 'nombre', NEW.nombre, 'tipo', NEW.tipo,
+              'modo_precio', NEW.modo_precio, 'valor_precio', NEW.valor_precio,
+              'obligatorio', NEW.obligatorio, 'visible', NEW.visible
+            )
+          ));
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -295,7 +565,63 @@ INSERT INTO `productos` (`id_producto`, `nombre`, `descripcion`, `caracteristica
 (7, 'Refrigerador LG InstaView', 'Refrigerador de dos puertas con panel InstaView, dispensador de agua y sistema de enfriamiento lineal.', '[{\"nombre\": \"Control de temperatura\", \"precio\": 0}, {\"nombre\": \"Dispensador de hielo\", \"precio\": 0}, {\"nombre\": \"Luz LED interior\", \"precio\": 0}]', 'LG', 'GR-X257CSAV', '1299.99', 5, 2, 2, 'activo', '2025-08-09', '2025-08-09 16:56:02'),
 (8, 'Refrigerador Samsung No Frost 320L', 'Refrigerador de dos puertas, sistema No Frost, eficiencia energética A+, bajo consumo y compartimentos ajustables.', '[{\"nombre\": \"Control de temperatura digital\", \"precio\": 0}, {\"nombre\": \"Luz LED interior\", \"precio\": 0}, {\"nombre\": \"Bandejas de vidrio templado\", \"precio\": 0}]', 'Samsung', 'RT32K503JS8/PE', '559.99', 15, 2, 2, 'activo', '2025-08-09', '2025-08-09 17:17:59'),
 (9, 'Refrigerador 400L', 'No Frost, eficiencia A', '{\"color\": \"Inox\", \"capacidad\": \"400L\"}', 'LG', 'GT43', '699.00', 10, 2, 1, 'activo', '2025-08-12', '2025-08-12 22:36:33'),
-(10, 'Refrigerador 420L', 'Dispensador de agua', '{\"color\": \"Silver\", \"capacidad\": \"420L\"}', 'Samsung', 'RT42', '749.00', 8, 2, 1, 'activo', '2025-08-12', '2025-08-12 22:36:33');
+(10, 'Refrigerador 420L', 'Dispensador de agua', '{\"color\": \"Silver\", \"capacidad\": \"420L\"}', 'Samsung', 'RT42', '749.00', 8, 2, 1, 'activo', '2025-08-12', '2025-08-12 22:36:33'),
+(12, 'zzz', 'aaa', '[{\"nombre\": \"aa\", \"precio\": 0}]', 'aaa', 'aaa', '11.00', 1, NULL, 3, 'activo', '2025-08-13', '2025-08-13 02:08:03'),
+(13, 'sad', 'asdasd', '[]', 'asdasd', 'dasda', '111.00', 11, 6, 1, 'activo', '2025-08-13', '2025-08-13 02:14:56'),
+(14, 'aaa', 'asdasd', '[]', 'fasf', 'asfas', '111.00', 11, 4, 1, 'activo', '2025-08-13', '2025-08-13 02:17:45');
+
+--
+-- Triggers `productos`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_productos_ad` AFTER DELETE ON `productos` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'eliminar', 'producto', OLD.id_producto,
+          JSON_OBJECT(
+            'nombre', OLD.nombre, 'precio_base', OLD.precio_base, 'stock', OLD.stock,
+            'id_categoria', OLD.id_categoria, 'id_empresa', OLD.id_empresa, 'estado', OLD.estado
+          ));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_productos_ai` AFTER INSERT ON `productos` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'crear', 'producto', NEW.id_producto,
+          JSON_OBJECT(
+            'nombre', NEW.nombre,
+            'precio_base', NEW.precio_base,
+            'stock', NEW.stock,
+            'id_categoria', NEW.id_categoria,
+            'id_empresa', NEW.id_empresa,
+            'estado', NEW.estado
+          ));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_productos_au` AFTER UPDATE ON `productos` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  DECLARE v_accion VARCHAR(32);
+  SET v_accion = f_accion_estado(OLD.estado, NEW.estado);
+
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, v_accion, 'producto', NEW.id_producto,
+          JSON_OBJECT(
+            'before', JSON_OBJECT(
+              'nombre', OLD.nombre, 'precio_base', OLD.precio_base, 'stock', OLD.stock,
+              'id_categoria', OLD.id_categoria, 'id_empresa', OLD.id_empresa, 'estado', OLD.estado
+            ),
+            'after', JSON_OBJECT(
+              'nombre', NEW.nombre, 'precio_base', NEW.precio_base, 'stock', NEW.stock,
+              'id_categoria', NEW.id_categoria, 'id_empresa', NEW.id_empresa, 'estado', NEW.estado
+            )
+          ));
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -345,7 +671,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombre_completo`, `correo`, `contraseña`, `nickname`, `fecha_nacimiento`, `id_rol`, `estado`, `created_at`) VALUES
-(1, 'Administrador General', 'admin@sistema.com', '$2y$10$RDUqPX.onV.oMNnbUkztDudGCjzcNCoktvL60OsetTsWwOY9eZSS6', 'admin', '1990-01-01', 1, 'activo', '2025-08-01 02:45:35'),
+(1, 'Administrador General', 'admin@sistema.com', '$2y$10$L8N4vq.kdOJU99jS5w8BR.k2lf9j7RVP4qPLNt2z4L6vdegW.FmWG', 'admin', '1990-01-01', 1, 'activo', '2025-08-01 02:45:35'),
 (2, 'Proveedor ElectroQuito', 'ventas@electroquito.ec', '$2y$10$tlribCGXCamL.JLLEt18kO/D/cTEki8FWcMf26ZI0zz4ngMECcDy2', 'electro', '1985-05-10', 2, 'activo', '2025-08-04 17:32:14'),
 (3, 'Proveedor HogarTech', 'info@hogartech.com', '$2y$10$tlribCGXCamL.JLLEt18kO/D/cTEki8FWcMf26ZI0zz4ngMECcDy2', 'hogar', '1982-03-08', 2, 'activo', '2025-08-04 17:32:14'),
 (4, 'Cliente Uno', 'cliente1@gmail.com', '$2y$10$RbhJoeFsRgvsRCFj7zVDm.oQqZrRGkS42amlMjzpeir3Ua9g.tPs.', 'cliente1', '2000-07-01', 3, 'activo', '2025-08-04 17:32:14'),
@@ -353,6 +679,52 @@ INSERT INTO `usuarios` (`id_usuario`, `nombre_completo`, `correo`, `contraseña`
 (6, ' Auditor Interno', 'auditor@sistema.com', '$2y$10$vFz3INcLEJbtwb7xo6ZMQe3JMFqgMV/igdBGsn.YBEOVr38bnXHV.', 'auditor', '1980-06-10', 4, 'activo', '2025-08-10 20:43:11'),
 (7, 'Supervisor Productos', 'supervisor@sistema.com', '$2y$10$QDBSl/uEO/AiH23Dtgq5SuIUxZCHmHQmYQaInd14QBNe6tk1xuhI2', 'supervisor', '1988-07-10', 5, 'activo', '2025-08-10 20:45:25'),
 (8, 'Analista Comercial', 'analista@sistema.com', '$2y$10$rtFdK0..gZ2PEKPCjdliO.qmVfx5xpRxu1lLbxR7qbR3pr4xbKXPS', 'analista', '1995-12-05', 6, 'activo', '2025-08-10 20:47:01');
+
+--
+-- Triggers `usuarios`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_usuarios_ad` AFTER DELETE ON `usuarios` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'eliminar', 'usuario', OLD.id_usuario,
+          JSON_OBJECT('nombre', OLD.nombre_completo, 'correo', OLD.correo, 'id_rol', OLD.id_rol));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_usuarios_ai` AFTER INSERT ON `usuarios` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, 'crear', 'usuario', NEW.id_usuario,
+          JSON_OBJECT(
+            'nombre', NEW.nombre_completo, 'correo', NEW.correo,
+            'nickname', NEW.nickname, 'id_rol', NEW.id_rol, 'estado', NEW.estado
+          ));
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_usuarios_au` AFTER UPDATE ON `usuarios` FOR EACH ROW BEGIN
+  DECLARE v_actor INT DEFAULT @actor_id;
+  DECLARE v_accion VARCHAR(32);
+  SET v_accion = f_accion_estado(OLD.estado, NEW.estado);
+
+  INSERT INTO auditoria(fecha, actor_id, accion, entidad, entidad_id, detalle)
+  VALUES (NOW(), v_actor, v_accion, 'usuario', NEW.id_usuario,
+          JSON_OBJECT(
+            'before', JSON_OBJECT(
+              'nombre', OLD.nombre_completo, 'correo', OLD.correo, 'nickname', OLD.nickname,
+              'id_rol', OLD.id_rol, 'estado', OLD.estado
+            ),
+            'after', JSON_OBJECT(
+              'nombre', NEW.nombre_completo, 'correo', NEW.correo, 'nickname', NEW.nickname,
+              'id_rol', NEW.id_rol, 'estado', NEW.estado
+            )
+          ));
+END
+$$
+DELIMITER ;
 
 --
 -- Indexes for dumped tables
@@ -454,13 +826,13 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT for table `auditoria`
 --
 ALTER TABLE `auditoria`
-  MODIFY `id_audit` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id_audit` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `aud_accesos`
 --
 ALTER TABLE `aud_accesos`
-  MODIFY `id_acceso` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id_acceso` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `categorias`
@@ -472,37 +844,37 @@ ALTER TABLE `categorias`
 -- AUTO_INCREMENT for table `clientes`
 --
 ALTER TABLE `clientes`
-  MODIFY `id_cliente` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_cliente` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `cotizaciones`
 --
 ALTER TABLE `cotizaciones`
-  MODIFY `id_cotizacion` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_cotizacion` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `detalle_cotizacion`
 --
 ALTER TABLE `detalle_cotizacion`
-  MODIFY `id_detalle` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id_detalle` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `empresas_proveedoras`
 --
 ALTER TABLE `empresas_proveedoras`
-  MODIFY `id_empresa` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_empresa` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `opciones_categoria`
 --
 ALTER TABLE `opciones_categoria`
-  MODIFY `id_opcion` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id_opcion` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id_producto` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id_producto` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `roles`
