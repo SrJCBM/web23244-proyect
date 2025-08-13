@@ -112,6 +112,7 @@ window.listarProductosUI = async function () {
   const q = qInp ? qInp.value || "" : "";
   if (!idc) {
 
+
     cont.innerHTML = "";
     return;
   }

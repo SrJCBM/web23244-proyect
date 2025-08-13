@@ -146,5 +146,3 @@ require_once("../includes/conexion.php");
     </div>
   </div>
 </div>
-
-

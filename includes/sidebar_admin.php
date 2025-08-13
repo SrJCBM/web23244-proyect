@@ -32,6 +32,6 @@
 
   <h5 class="ui horizontal divider header text-primary">Sistema</h5>
   <ul class="nav flex-column bg-white mb-0">
-    <li><a class="nav-link">Auditoría y logs</a></li>
+    <li class="nav-item"><a class="nav-link" onclick="cargarDirecto('auditor/lista_auditoria.php')">Logs de actividades</a></li>
   </ul>
 </div>

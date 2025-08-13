@@ -1,14 +1,23 @@
 <?php
-require_once("../includes/verificar_rol.php"); verificarRol([2,1,5]);
+session_start();
+require_once("../includes/verificar_rol.php"); verificarRol([1,2,5,6]); // los que pueden usar el wizard
 require_once("../includes/conexion.php");
-header('Content-Type: application/json; charset=utf-8');
+header("Content-Type: application/json; charset=utf-8");
 
 $cedula = trim($_GET['cedula'] ?? '');
-if ($cedula===''){ echo json_encode(['ok'=>false,'msg'=>'Cédula requerida']); exit; }
+if ($cedula === '') {
+  echo json_encode(["ok"=>false,"found"=>false,"msg"=>"Falta cédula"]); exit;
+}
 
-$stmt = $conexion->prepare("SELECT id_cliente, nombre_comercial, persona_contacto, correo, telefono
-                            FROM clientes WHERE cedula=? LIMIT 1");
-$stmt->bind_param("s",$cedula);
+// busca por cédula (ajusta el nombre de la columna según tu tabla)
+$stmt = $conexion->prepare("SELECT id_cliente, cedula, nombre_comercial, correo, telefono, direccion 
+                            FROM clientes WHERE cedula = ? LIMIT 1");
+$stmt->bind_param("s", $cedula);
 $stmt->execute();
 $res = $stmt->get_result();
-echo json_encode(['ok'=>true,'found'=>$res->num_rows>0,'cliente'=>$res->fetch_assoc()]);
+
+if ($res && $row = $res->fetch_assoc()) {
+  echo json_encode(["ok"=>true, "found"=>true, "cliente"=>$row]);
+} else {
+  echo json_encode(["ok"=>true, "found"=>false]);
+}
